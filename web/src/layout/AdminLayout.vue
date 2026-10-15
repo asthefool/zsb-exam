@@ -69,6 +69,7 @@ function onLogout() {
 }
 .brand {
   padding: 20px 24px;
+  font-family: var(--font-serif);
   font-size: 18px;
   font-weight: 700;
   color: var(--primary);
