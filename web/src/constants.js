@@ -8,6 +8,12 @@ export const Q_TYPE_LABEL = {
   judge: '判断'
 };
 
+export const GENDER_LABEL = {
+  secret: '保密',
+  male: '男',
+  female: '女'
+};
+
 export const STORAGE_KEYS = {
   token: 'token',
   role: 'role',

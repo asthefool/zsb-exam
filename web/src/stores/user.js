@@ -40,8 +40,9 @@ export const useUserStore = defineStore('user', {
       return this.profile;
     },
     async saveProfile(payload) {
-      const nickname = typeof payload === 'string' ? payload : payload?.nickname;
-      this.profile = await updateProfile({ nickname });
+      // 兼容旧调用（字符串 = 昵称）与新调用（完整资料对象）
+      const data = typeof payload === 'string' ? { nickname: payload } : (payload || {});
+      this.profile = await updateProfile(data);
       return this.profile;
     }
   }

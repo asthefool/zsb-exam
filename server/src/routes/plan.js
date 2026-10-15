@@ -5,17 +5,18 @@ const planService = require('../services/planService');
 const aiService = require('../services/aiService');
 const { verifyToken } = require('../middleware/auth');
 const { rateLimit } = require('../middleware/rateLimit');
-const config = require('../config');
+const aiConfig = require('../ai/aiConfig');
 
 // AI 接口按用户限流；讲解与计划分桶，避免一类操作耗尽另一类配额
+// 阈值动态取 aiConfig（管理员后台调整后立即生效，无需重启）
 const explainRate = rateLimit({
   windowMs: 60000,
-  max: config.ai.rateLimitPerMin,
+  max: () => aiConfig.get().rateLimitPerMin,
   keyFn: (req) => `ai-explain:${req.user && req.user.id}`
 });
 const planRate = rateLimit({
   windowMs: 60000,
-  max: config.ai.rateLimitPerMin,
+  max: () => aiConfig.get().rateLimitPerMin,
   keyFn: (req) => `ai-plan:${req.user && req.user.id}`
 });
 

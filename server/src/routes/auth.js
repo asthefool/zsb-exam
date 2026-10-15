@@ -32,8 +32,13 @@ router.get('/user/profile', verifyToken, wrap(async (req, res) => {
 }));
 
 router.put('/user/profile', verifyToken, wrap(async (req, res) => {
-  requireFields(req.body, ['nickname']);
   ok(res, await userService.updateProfile(req.user.id, req.body), '更新成功');
+}));
+
+// 修改密码（个人中心-账号安全）：校验原密码后重设，成功后需重新登录的场景由前端自行处理
+router.put('/user/password', verifyToken, wrap(async (req, res) => {
+  requireFields(req.body, ['old_password', 'new_password']);
+  ok(res, await userService.changePassword(req.user.id, req.body), '密码已修改');
 }));
 
 router.get('/home/overview', verifyToken, wrap(async (req, res) => {

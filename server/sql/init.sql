@@ -12,6 +12,12 @@ CREATE TABLE users (
   username      VARCHAR(32)  NOT NULL COMMENT '登录账号，唯一',
   password_hash VARCHAR(100) NOT NULL COMMENT 'bcrypt 哈希',
   nickname      VARCHAR(32)  NOT NULL DEFAULT '' COMMENT '昵称',
+  gender        ENUM('secret','male','female') NOT NULL DEFAULT 'secret' COMMENT '性别：保密/男/女',
+  phone         VARCHAR(20)  NOT NULL DEFAULT '' COMMENT '手机号',
+  email         VARCHAR(64)  NOT NULL DEFAULT '' COMMENT '邮箱',
+  target_school VARCHAR(64)  NOT NULL DEFAULT '' COMMENT '目标院校',
+  bio           VARCHAR(200) NOT NULL DEFAULT '' COMMENT '个性签名',
+  avatar        VARCHAR(255) NOT NULL DEFAULT '' COMMENT '头像（预设图标名或图片地址）',
   role          ENUM('student','admin') NOT NULL DEFAULT 'student' COMMENT '角色',
   status        TINYINT NOT NULL DEFAULT 1 COMMENT '1启用 0禁用',
   created_at    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -109,12 +115,32 @@ CREATE TABLE ai_generations (
   prompt           MEDIUMTEXT NULL COMMENT '实际提示词，审计用',
   content          MEDIUMTEXT NOT NULL COMMENT '生成内容',
   status           ENUM('success','failed') NOT NULL DEFAULT 'success',
+  duration_ms      INT NULL COMMENT '本次调用耗时（毫秒）',
   error_msg        VARCHAR(255) NULL,
   created_at       DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   KEY idx_ref (gen_type, ref_type, ref_id),
   KEY idx_user_type (user_id, gen_type),
   CONSTRAINT fk_ag_user FOREIGN KEY (user_id) REFERENCES users(id)
 ) ENGINE=InnoDB COMMENT='AI 生成记录与缓存';
+
+CREATE TABLE system_settings (
+  k          VARCHAR(64) NOT NULL PRIMARY KEY COMMENT '配置键',
+  v          TEXT NULL COMMENT '配置值（JSON 或字符串）',
+  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB COMMENT='系统设置（运行时可改配置）';
+
+CREATE TABLE backups (
+  id          INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  filename    VARCHAR(255) NOT NULL COMMENT '备份文件名（server/backups 下）',
+  file_size   BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '文件字节数',
+  table_count INT NOT NULL DEFAULT 0 COMMENT '包含表数',
+  row_count   INT NOT NULL DEFAULT 0 COMMENT '包含数据行数',
+  sha256      CHAR(64) NOT NULL DEFAULT '' COMMENT '文件 SHA-256，校验完整性',
+  created_by  INT UNSIGNED NULL COMMENT '操作管理员',
+  created_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  KEY idx_created (created_at),
+  CONSTRAINT fk_bk_user FOREIGN KEY (created_by) REFERENCES users(id)
+) ENGINE=InnoDB COMMENT='数据备份记录';
 
 -- 种子数据：科目字典（题目由导题脚本灌入，保持初始规模可配置）
 INSERT INTO subjects (name, sort) VALUES

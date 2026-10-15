@@ -1,17 +1,25 @@
 <script setup>
-// 个人中心（对齐 UI 库 Profile.tsx 结构）：账号信息 + 修改昵称
+// 个人中心（任务书 F7）：管理个人信息
+// 账号信息展示 + 个人资料编辑（昵称/性别/手机/邮箱/目标院校/签名） + 修改密码
 import { reactive, ref, computed, onMounted } from 'vue';
 import { ElMessage } from 'element-plus';
 import { useUserStore } from '../../stores/user';
+import { changePassword } from '../../api';
+import { GENDER_LABEL } from '../../constants.js';
 
 const userStore = useUserStore();
 const user = ref({});
 const saving = ref(false);
 const error = ref(false);
-const form = reactive({ nickname: '' });
-
+const form = reactive({
+  nickname: '', gender: 'secret', phone: '', email: '', target_school: '', bio: ''
+});
 const nickCount = computed(() => `${form.nickname.length}/32`);
+const bioCount = computed(() => `${form.bio.length}/200`);
 const avatarChar = computed(() => (user.value.nickname || user.value.username || '同').slice(0, 1));
+
+const pwd = reactive({ old_password: '', new_password: '', confirm: '' });
+const pwdSaving = ref(false);
 
 function formatDate(v) {
   return v ? String(v).replace('T', ' ').slice(0, 16) : '—';
@@ -22,6 +30,11 @@ async function load() {
   try {
     user.value = (await userStore.fetchProfile()) || {};
     form.nickname = user.value.nickname || '';
+    form.gender = user.value.gender || 'secret';
+    form.phone = user.value.phone || '';
+    form.email = user.value.email || '';
+    form.target_school = user.value.target_school || '';
+    form.bio = user.value.bio || '';
   } catch (e) {
     user.value = {};
     error.value = true;
@@ -35,13 +48,50 @@ async function onSave() {
   }
   saving.value = true;
   try {
-    await userStore.saveProfile({ nickname: form.nickname.trim() });
-    ElMessage.success('昵称已更新');
+    await userStore.saveProfile({
+      nickname: form.nickname.trim(),
+      gender: form.gender,
+      phone: form.phone.trim(),
+      email: form.email.trim(),
+      target_school: form.target_school.trim(),
+      bio: form.bio.trim()
+    });
+    ElMessage.success('个人资料已更新');
     await load();
   } catch (e) {
     /* 保存失败由全局拦截器提示 */
   } finally {
     saving.value = false;
+  }
+}
+
+async function onChangePassword() {
+  if (!pwd.old_password || !pwd.new_password) {
+    ElMessage.warning('请输入原密码与新密码');
+    return;
+  }
+  if (pwd.new_password.length < 6) {
+    ElMessage.warning('新密码长度至少 6 位');
+    return;
+  }
+  if (pwd.new_password !== pwd.confirm) {
+    ElMessage.warning('两次输入的新密码不一致');
+    return;
+  }
+  pwdSaving.value = true;
+  try {
+    await changePassword({
+      old_password: pwd.old_password,
+      new_password: pwd.new_password
+    });
+    ElMessage.success('密码已修改，下次登录请使用新密码');
+    pwd.old_password = '';
+    pwd.new_password = '';
+    pwd.confirm = '';
+  } catch (e) {
+    /* 失败由全局拦截器提示 */
+  } finally {
+    pwdSaving.value = false;
   }
 }
 
@@ -53,7 +103,7 @@ onMounted(load);
     <div class="page-head">
       <div>
         <h1>个人中心</h1>
-        <p class="sub">查看账号信息，修改展示昵称。</p>
+        <p class="sub">管理个人资料与账号安全。</p>
       </div>
     </div>
 
@@ -70,18 +120,17 @@ onMounted(load);
           <span class="avatar">{{ avatarChar }}</span>
           <div>
             <div class="name">{{ user.nickname || user.username || '—' }}</div>
-            <div class="text-xs muted">计算机科学与技术 备考中</div>
+            <div class="text-xs muted">{{ user.target_school ? `${user.target_school} 备考中` : '备考中' }}</div>
           </div>
         </div>
         <dl class="info-list">
-          <div class="info-row">
-            <dt>用户名</dt>
-            <dd>{{ user.username || '—' }}</dd>
-          </div>
-          <div class="info-row">
-            <dt>昵称</dt>
-            <dd>{{ user.nickname || '—' }}</dd>
-          </div>
+          <div class="info-row"><dt>用户名</dt><dd>{{ user.username || '—' }}</dd></div>
+          <div class="info-row"><dt>昵称</dt><dd>{{ user.nickname || '—' }}</dd></div>
+          <div class="info-row"><dt>性别</dt><dd>{{ GENDER_LABEL[user.gender] || '保密' }}</dd></div>
+          <div class="info-row"><dt>手机号</dt><dd>{{ user.phone || '—' }}</dd></div>
+          <div class="info-row"><dt>邮箱</dt><dd>{{ user.email || '—' }}</dd></div>
+          <div class="info-row"><dt>目标院校</dt><dd>{{ user.target_school || '—' }}</dd></div>
+          <div class="info-row"><dt>个性签名</dt><dd class="bio-text">{{ user.bio || '—' }}</dd></div>
           <div class="info-row">
             <dt>角色</dt>
             <dd>
@@ -90,32 +139,87 @@ onMounted(load);
               </span>
             </dd>
           </div>
-          <div class="info-row">
-            <dt>注册时间</dt>
-            <dd>{{ formatDate(user.created_at) }}</dd>
-          </div>
+          <div class="info-row"><dt>注册时间</dt><dd>{{ formatDate(user.created_at) }}</dd></div>
         </dl>
       </section>
 
-      <!-- 修改昵称 -->
-      <section class="panel align-start">
-        <div class="panel-head"><h2>修改昵称</h2></div>
-        <div class="nick-form">
-          <div>
-            <div class="form-label"><span>新昵称</span><span class="hint">{{ nickCount }}</span></div>
-            <input v-model="form.nickname" class="field" maxlength="32" placeholder="请输入新昵称" />
+      <div class="col-stack">
+        <!-- 编辑资料 -->
+        <section class="panel">
+          <div class="panel-head"><h2>编辑资料</h2></div>
+          <div class="profile-form">
+            <div>
+              <div class="form-label"><span>昵称</span><span class="hint">{{ nickCount }}</span></div>
+              <input v-model="form.nickname" class="field" maxlength="32" placeholder="请输入昵称" />
+            </div>
+            <div>
+              <div class="form-label"><span>性别</span></div>
+              <div class="btn-row">
+                <button
+                  v-for="(label, key) in GENDER_LABEL"
+                  :key="key"
+                  class="type-btn"
+                  :class="{ active: form.gender === key }"
+                  @click="form.gender = key"
+                >{{ label }}</button>
+              </div>
+            </div>
+            <div class="two-col">
+              <div>
+                <div class="form-label"><span>手机号</span></div>
+                <input v-model="form.phone" class="field" maxlength="11" placeholder="11 位手机号（可留空）" />
+              </div>
+              <div>
+                <div class="form-label"><span>邮箱</span></div>
+                <input v-model="form.email" class="field" maxlength="64" placeholder="常用邮箱（可留空）" />
+              </div>
+            </div>
+            <div>
+              <div class="form-label"><span>目标院校</span></div>
+              <input v-model="form.target_school" class="field" maxlength="64" placeholder="备考目标院校（可留空）" />
+            </div>
+            <div>
+              <div class="form-label"><span>个性签名</span><span class="hint">{{ bioCount }}</span></div>
+              <textarea v-model="form.bio" class="field" rows="2" maxlength="200" placeholder="写一句备考宣言（可留空）"></textarea>
+            </div>
+            <div>
+              <button class="btn btn-primary" :disabled="saving" @click="onSave">
+                {{ saving ? '保存中…' : '保存资料' }}
+              </button>
+            </div>
           </div>
-          <div>
-            <button class="btn btn-primary" :disabled="saving" @click="onSave">
-              {{ saving ? '保存中…' : '保存' }}
-            </button>
+        </section>
+
+        <!-- 修改密码 -->
+        <section class="panel">
+          <div class="panel-head"><h2>修改密码</h2></div>
+          <div class="profile-form">
+            <div>
+              <div class="form-label"><span>原密码</span></div>
+              <input v-model="pwd.old_password" class="field" type="password" maxlength="32" placeholder="请输入原密码" />
+            </div>
+            <div class="two-col">
+              <div>
+                <div class="form-label"><span>新密码</span><span class="hint">至少 6 位</span></div>
+                <input v-model="pwd.new_password" class="field" type="password" maxlength="32" placeholder="请输入新密码" />
+              </div>
+              <div>
+                <div class="form-label"><span>确认新密码</span></div>
+                <input v-model="pwd.confirm" class="field" type="password" maxlength="32" placeholder="再次输入新密码" />
+              </div>
+            </div>
+            <div>
+              <button class="btn btn-primary" :disabled="pwdSaving" @click="onChangePassword">
+                {{ pwdSaving ? '提交中…' : '修改密码' }}
+              </button>
+            </div>
+            <div class="notice">
+              <span aria-hidden>ⓘ</span>
+              修改成功后下次登录请使用新密码；忘记密码可联系管理员在后台处理
+            </div>
           </div>
-          <div class="notice">
-            <span aria-hidden>ⓘ</span>
-            忘记密码等账号安全操作请联系管理员在后台处理
-          </div>
-        </div>
-      </section>
+        </section>
+      </div>
     </div>
   </div>
 </template>
@@ -129,7 +233,7 @@ onMounted(load);
 @media (min-width: 1024px) {
   .grid-profile { grid-template-columns: 10fr 14fr; }
 }
-.align-start { align-self: start; }
+.col-stack { display: flex; flex-direction: column; gap: 24px; min-width: 0; }
 .profile-top {
   display: flex;
   align-items: center;
@@ -156,20 +260,39 @@ onMounted(load);
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 16px;
   padding: 14px 20px;
   border-bottom: 1px solid var(--border);
   font-size: 14px;
 }
 .info-row:last-child { border-bottom: none; }
-.info-row dt { color: var(--text-2); margin: 0; }
-.info-row dd { margin: 0; }
-.nick-form {
-  max-width: 420px;
-  padding: 20px;
+.info-row dt { color: var(--text-2); margin: 0; flex-shrink: 0; }
+.info-row dd { margin: 0; text-align: right; word-break: break-all; }
+.bio-text { max-width: 260px; line-height: 1.6; }
+.profile-form {
   display: flex;
   flex-direction: column;
   gap: 20px;
+  padding: 20px;
 }
+.two-col {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px 24px;
+}
+.two-col > div { flex: 1; min-width: 200px; }
+.btn-row { display: flex; gap: 8px; }
+.type-btn {
+  border: 1px solid var(--border);
+  background: var(--card);
+  border-radius: 8px;
+  padding: 6px 16px;
+  font-size: 14px;
+  color: var(--text);
+  transition: border-color 0.15s, background-color 0.15s, color 0.15s;
+}
+.type-btn:hover { border-color: rgba(29, 79, 215, 0.6); }
+.type-btn.active { border-color: var(--primary); background: var(--primary-soft); color: var(--primary); }
 .notice {
   display: flex;
   gap: 8px;

@@ -27,8 +27,11 @@ app.use('/api', (req, res) => {
 app.use(errorHandler);
 
 if (require.main === module) {
-  app.listen(config.port, () => {
-    console.log(`[zsb-exam] server listening on http://localhost:${config.port}`);
+  // 先加载 AI 运行时配置（system_settings 覆盖项），再开始接受请求
+  require('./ai/aiConfig').ensureLoaded().finally(() => {
+    app.listen(config.port, () => {
+      console.log(`[zsb-exam] server listening on http://localhost:${config.port}`);
+    });
   });
 }
 

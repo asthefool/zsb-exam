@@ -9,7 +9,8 @@
     "init:admin": "node scripts/init-admin.js",
     "import:questions": "node scripts/import-questions.js",
     "ai:test": "node scripts/test-ai.js",
-    "smoke": "node scripts/smoke-test.js"
+    "smoke": "node scripts/smoke-test.js",
+    "smoke:admin": "node scripts/smoke-admin.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
