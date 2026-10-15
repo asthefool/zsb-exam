@@ -92,7 +92,7 @@ onMounted(load);
       <table class="table">
         <thead>
           <tr>
-            <th>ID</th><th>用户名</th><th>昵称</th><th>角色</th><th>状态</th><th>注册时间</th><th>操作</th>
+            <th>ID</th><th>用户名</th><th>昵称</th><th>手机号</th><th>邮箱</th><th>角色</th><th>状态</th><th>注册时间</th><th>操作</th>
           </tr>
         </thead>
         <tbody>
@@ -100,6 +100,8 @@ onMounted(load);
             <td class="muted">{{ u.id }}</td>
             <td class="name">{{ u.username }}</td>
             <td>{{ u.nickname || '—' }}</td>
+            <td class="muted">{{ u.phone || '—' }}</td>
+            <td class="muted">{{ u.email || '—' }}</td>
             <td>
               <span class="tag" :class="u.role === 'admin' ? 'tag-bad' : 'tag-brand'">
                 {{ u.role === 'admin' ? '管理员' : '考生' }}
@@ -119,7 +121,7 @@ onMounted(load);
             </td>
           </tr>
           <tr v-if="!rows.length && !loading" class="empty">
-            <td colspan="7">暂无数据</td>
+            <td colspan="9">暂无数据</td>
           </tr>
         </tbody>
       </table>

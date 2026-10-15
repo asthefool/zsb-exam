@@ -9,7 +9,11 @@ const userStore = useUserStore();
 
 const menus = [
   { path: '/admin/questions', label: '题目管理' },
-  { path: '/admin/users', label: '用户管理' }
+  { path: '/admin/users', label: '用户管理' },
+  { path: '/admin/wrong-questions', label: '错题管理' },
+  { path: '/admin/plans', label: '复习计划管理' },
+  { path: '/admin/ai', label: 'AI 服务管理' },
+  { path: '/admin/backup', label: '数据备份' }
 ];
 
 function onLogout() {

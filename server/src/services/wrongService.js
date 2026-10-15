@@ -76,4 +76,37 @@ async function markMastered(userId, id, { mastered }) {
   return { mastered: v };
 }
 
-module.exports = { list, detail, repractice, markMastered };
+// ---- 管理端错题管理（F8）：跨考生查看与维护 ----
+async function adminList(params) {
+  const { list, total } = await wrongDao.adminList(params);
+  return { list, total };
+}
+
+async function adminStats() {
+  const s = await wrongDao.adminStats();
+  // SUM 聚合返回 DECIMAL（字符串），统一转数字供前端直接使用
+  return {
+    total: Number(s.total),
+    unmastered: Number(s.unmastered),
+    user_total: Number(s.user_total),
+    today_wrong: Number(s.today_wrong)
+  };
+}
+
+// 管理员代标掌握状态（如线下辅导后统一标记）
+async function adminSetMastered(id, { mastered }) {
+  const record = await wrongDao.findById(id);
+  if (!record) throw new BizError(CODES.NOT_FOUND, '错题记录不存在');
+  const v = parseMastered(mastered);
+  await wrongDao.setMastered(pool, id, v);
+  return { id, mastered: v };
+}
+
+// 管理员删除错题记录：历史作答记录与 AI 讲解留痕不受影响
+async function adminRemove(id) {
+  const affected = await wrongDao.remove(id);
+  if (!affected) throw new BizError(CODES.NOT_FOUND, '错题记录不存在');
+  return { id };
+}
+
+module.exports = { list, detail, repractice, markMastered, adminList, adminStats, adminSetMastered, adminRemove };

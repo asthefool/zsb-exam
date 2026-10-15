@@ -15,3 +15,7 @@ Thumbs.db
 
 # 临时缓存
 .tmp/
+
+# 后台生成的数据库备份文件（随工程提交的备份脚本放在 server/sql/ 下）
+server/backups/
+server/sql/data-backup-20261015.sql

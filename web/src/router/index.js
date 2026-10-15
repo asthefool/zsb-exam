@@ -26,7 +26,11 @@ const routes = [
     children: [
       { path: '', redirect: { name: 'adminQuestions' } },
       { path: 'questions', name: 'adminQuestions', component: () => import('../views/admin/QuestionManage.vue'), meta: { title: '题目管理' } },
-      { path: 'users', name: 'adminUsers', component: () => import('../views/admin/UserManage.vue'), meta: { title: '用户管理' } }
+      { path: 'users', name: 'adminUsers', component: () => import('../views/admin/UserManage.vue'), meta: { title: '用户管理' } },
+      { path: 'wrong-questions', name: 'adminWrong', component: () => import('../views/admin/WrongManage.vue'), meta: { title: '错题管理' } },
+      { path: 'plans', name: 'adminPlans', component: () => import('../views/admin/PlanManage.vue'), meta: { title: '复习计划管理' } },
+      { path: 'ai', name: 'adminAi', component: () => import('../views/admin/AiManage.vue'), meta: { title: 'AI 服务管理' } },
+      { path: 'backup', name: 'adminBackup', component: () => import('../views/admin/BackupManage.vue'), meta: { title: '数据备份' } }
     ]
   },
   { path: '/:pathMatch(.*)*', redirect: '/' }

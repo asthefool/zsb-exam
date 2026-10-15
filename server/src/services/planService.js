@@ -118,6 +118,7 @@ async function generate(userId, { exam_date, target_subjects, daily_minutes }) {
 
   let tasks;
   let usedProvider = provider.getProviderName();
+  const startedAt = Date.now();
   try {
     if (usedProvider === 'llm') {
       const ret = await provider.generate('plan', { prompt, planContext });
@@ -144,7 +145,8 @@ async function generate(userId, { exam_date, target_subjects, daily_minutes }) {
       await aiGenDao.create(pool, {
         user_id: userId, gen_type: 'plan', ref_type: 'review_plan', ref_id: 0,
         question_version: null, provider: usedProvider, prompt,
-        content: '', status: 'failed', error_msg: String(e.message || e).slice(0, 255)
+        content: '', status: 'failed', duration_ms: Date.now() - startedAt,
+        error_msg: String(e.message || e).slice(0, 255)
       });
     } catch (_) { /* ignore */ }
     throw new BizError(CODES.AI_UPSTREAM, `复习计划生成失败：${e.message}`);
@@ -178,7 +180,7 @@ async function generate(userId, { exam_date, target_subjects, daily_minutes }) {
     const genId = await aiGenDao.create(pool, {
       user_id: userId, gen_type: 'plan', ref_type: 'review_plan', ref_id: planId,
       question_version: null, provider: usedProvider, prompt,
-      content: JSON.stringify(tasks), status: 'success'
+      content: JSON.stringify(tasks), status: 'success', duration_ms: Date.now() - startedAt
     });
     await planDao.setAiGeneration(pool, planId, genId);
   } catch (e) {
@@ -234,4 +236,65 @@ async function checkIn(userId, taskId) {
   };
 }
 
-module.exports = { generate, current, listHistory, checkIn };
+// ---- 管理端复习计划管理（F8）：跨考生查看与维护 ----
+function shapeProgress(p) {
+  return {
+    done: Number(p.done), total: p.total,
+    percent: p.total ? Math.round((Number(p.done) / p.total) * 100) : 0
+  };
+}
+
+async function adminList(params) {
+  const { list, total } = await planDao.adminList(params);
+  return {
+    list: list.map((p) => ({ ...p, progress: shapeProgress({ done: p.task_done, total: p.task_total }) })),
+    total
+  };
+}
+
+// 计划详情：计划主体 + 任务列表 + 实时进度（供后台抽屉查看）
+async function adminDetail(id) {
+  const plan = await planDao.findWithUser(id);
+  if (!plan) throw new BizError(CODES.NOT_FOUND, '复习计划不存在');
+  const tasks = await planDao.listTasks(id);
+  const p = await planDao.progress(id);
+  return { ...plan, tasks, progress: shapeProgress(p) };
+}
+
+// 状态流转：置 active 时先归档该考生原有 active 计划，保持「同用户仅一个 active」
+const PLAN_STATUS = ['active', 'archived', 'finished'];
+async function adminSetStatus(id, { status }) {
+  if (!PLAN_STATUS.includes(status)) {
+    throw new BizError(CODES.BAD_REQUEST, '状态值仅支持 active、archived、finished');
+  }
+  const plan = await planDao.findWithUser(id);
+  if (!plan) throw new BizError(CODES.NOT_FOUND, '复习计划不存在');
+  if (status === 'active' && plan.status !== 'active') {
+    await planDao.archiveActive(pool, plan.user_id);
+  }
+  await planDao.setStatus(id, status);
+  return { id, status };
+}
+
+// 删除计划：任务随外键级联删除；AI 生成留痕保留在 ai_generations
+async function adminRemove(id) {
+  const affected = await planDao.remove(id);
+  if (!affected) throw new BizError(CODES.NOT_FOUND, '复习计划不存在');
+  return { id };
+}
+
+async function adminStats() {
+  const s = await planDao.adminStats();
+  // SUM 聚合返回 DECIMAL（字符串），统一转数字供前端直接使用
+  return {
+    total: Number(s.total),
+    active: Number(s.active_cnt),
+    task_total: Number(s.task_total),
+    task_done: Number(s.task_done)
+  };
+}
+
+module.exports = {
+  generate, current, listHistory, checkIn,
+  adminList, adminDetail, adminSetStatus, adminRemove, adminStats
+};

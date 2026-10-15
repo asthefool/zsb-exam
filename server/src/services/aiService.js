@@ -74,8 +74,10 @@ async function generateExplanation(userId, { wrong_question_id, force }) {
     analysis: q.analysis || '（暂无）'
   });
 
+  const startedAt = Date.now();
   try {
     const ret = await provider.generate('explain', { prompt, context });
+    const durationMs = Date.now() - startedAt;
     // 结构校验：须包含三个固定小节
     const c = ret.content;
     const valid = c.includes('错因分析') && c.includes('解题思路') && c.includes('知识点提示');
@@ -83,7 +85,7 @@ async function generateExplanation(userId, { wrong_question_id, force }) {
     const genId = await aiGenDao.create(null, {
       user_id: userId, gen_type: 'explain', ref_type: 'wrong_question', ref_id: wrong_question_id,
       question_version: normTime(q.updated_at), provider: ret.provider, prompt,
-      content: c, status: 'success'
+      content: c, status: 'success', duration_ms: durationMs
     });
     return {
       id: genId, content: c, provider: ret.provider, cached: false,
@@ -95,11 +97,92 @@ async function generateExplanation(userId, { wrong_question_id, force }) {
     await aiGenDao.create(null, {
       user_id: userId, gen_type: 'explain', ref_type: 'wrong_question', ref_id: wrong_question_id,
       question_version: normTime(q.updated_at), provider: provider.getProviderName(), prompt,
-      content: '', status: 'failed', error_msg: String(e.message || e).slice(0, 255)
+      content: '', status: 'failed', duration_ms: Date.now() - startedAt,
+      error_msg: String(e.message || e).slice(0, 255)
     }).catch(() => {});
     if (e instanceof BizError) throw e;
     throw new BizError(CODES.AI_UPSTREAM, 'AI 讲解生成失败或超时，请稍后重试');
   }
 }
 
-module.exports = { getConfig, getCachedExplanation, generateExplanation };
+// ---- 管理端 AI 服务管理（F8）----
+const aiConfig = require('../ai/aiConfig');
+
+// 当前服务配置（脱敏）+ 可用性提示，后台配置页展示用
+async function adminConfig() {
+  await aiConfig.ensureLoaded();
+  return { ...provider.status(), ...aiConfig.safeView() };
+}
+
+// 更新运行时配置：落 system_settings 并热生效；校验失败转 BizError
+async function adminUpdateConfig(patch) {
+  try {
+    return await aiConfig.update(patch || {});
+  } catch (e) {
+    throw new BizError(CODES.BAD_REQUEST, e.message || '配置项不合法');
+  }
+}
+
+// 连通性测试：按当前配置发一条最小请求，验证端点/密钥/模型可用并测耗时
+async function adminTestConnection() {
+  await aiConfig.ensureLoaded();
+  const cfg = aiConfig.get();
+  if (cfg.provider === 'mock') {
+    return { ok: true, provider: 'mock', model: cfg.model, duration_ms: 0, message: '当前为 mock 模式，无需外部连通' };
+  }
+  if (!cfg.apiKey) {
+    return { ok: false, provider: cfg.provider, model: cfg.model, duration_ms: 0, message: '未配置 API Key，无法连通' };
+  }
+  const startedAt = Date.now();
+  try {
+    const ret = await provider.generate('explain', {
+      prompt: '连通性测试：请只回复「连通正常」四个字，不要输出任何其他内容。'
+    });
+    return {
+      ok: true, provider: cfg.provider, model: ret.provider,
+      duration_ms: Date.now() - startedAt,
+      message: `连通正常，返回样例：${String(ret.content).trim().slice(0, 20)}`
+    };
+  } catch (e) {
+    return {
+      ok: false, provider: cfg.provider, model: cfg.model,
+      duration_ms: Date.now() - startedAt,
+      message: `连通失败：${e.message || e}`
+    };
+  }
+}
+
+// 调用记录：分页 + 筛选（类型/状态/用户/关键词/提供方）
+async function adminListGenerations(params) {
+  const { list, total } = await aiGenDao.adminList(params);
+  return { list, total };
+}
+
+async function adminGenerationDetail(id) {
+  const record = await aiGenDao.findById(id);
+  if (!record) throw new BizError(CODES.NOT_FOUND, 'AI 调用记录不存在');
+  return record;
+}
+
+async function adminStats() {
+  const s = await aiGenDao.stats();
+  const num = (v) => (v == null ? 0 : Number(v));
+  return {
+    overall: {
+      total: num(s.overall.total),
+      success: num(s.overall.success),
+      failed: num(s.overall.failed),
+      today: num(s.overall.today),
+      avg_duration_ms: s.overall.avg_duration_ms == null ? null : num(s.overall.avg_duration_ms)
+    },
+    by_type: s.by_type.map((r) => ({ gen_type: r.gen_type, total: num(r.total), success: num(r.success) })),
+    by_provider: s.by_provider.map((r) => ({ provider: r.provider, total: num(r.total) })),
+    trend: s.trend.map((r) => ({ day: r.day, total: num(r.total), success: num(r.success) }))
+  };
+}
+
+module.exports = {
+  getConfig, getCachedExplanation, generateExplanation,
+  adminConfig, adminUpdateConfig, adminTestConnection,
+  adminListGenerations, adminGenerationDetail, adminStats
+};
