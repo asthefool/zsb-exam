@@ -305,7 +305,7 @@ onMounted(async () => {
               <div class="chapter-acc">
                 <div v-if="masteryOf(t.value) !== null" class="acc-num" :class="{ bad: masteryOf(t.value) < 60 }">{{ masteryOf(t.value) }}%</div>
                 <div v-else class="acc-need">再做 {{ chapterOf[t.value]?.need_more ?? 10 }} 题可评估</div>
-                <div class="acc-label">掌握度</div>
+                <div v-if="masteryOf(t.value) !== null" class="acc-label">掌握度</div>
               </div>
               <button
                 class="btn btn-ghost"
@@ -389,6 +389,21 @@ export default { methods: { parseOptions } };
 .acc-num.bad { color: var(--red); }
 .acc-label { font-size: 12px; color: var(--text-2); }
 .acc-need { font-size: 12px; color: var(--text-2); }
+@media (max-width: 767px) {
+  .chapter-row { gap: 12px; padding: 14px 16px; }
+  .chapter-main { flex: 1 1 100%; min-width: 0; }
+  .chapter-acc {
+    width: auto;
+    flex: 1;
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    text-align: left;
+    white-space: nowrap;
+  }
+  .acc-num { font-size: 16px; }
+  .chapter-row .btn { flex-shrink: 0; }
+}
 
 /* 推荐行 */
 .rec-row {

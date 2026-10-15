@@ -18,10 +18,28 @@ const navs = [
   { path: '/plan', label: '复习计划', icon: 'M7 3v3M17 3v3M4 8h16M5 5h14a1 1 0 011 1v14a1 1 0 01-1 1H5a1 1 0 01-1-1V6a1 1 0 011-1zM9 14l2 2 4-4' }
 ];
 
+// 移动端底部五个标签（<768px 显示），学情报告/复习计划/个人资料收进「我的」
+const tabs = [
+  { path: '/', label: '今日', icon: 'M4 5h16M4 12h16M4 19h10' },
+  { path: '/practice', label: '题库', icon: 'M5 4h14v16H5zM9 9h6M9 13h6' },
+  { path: '/exam', label: '考场', icon: 'M12 7v5l3 2M12 3a9 9 0 100 18 9 9 0 000-18z' },
+  { path: '/wrong-book', label: '错题', icon: 'M6 4h12v16l-6-4-6 4z' },
+  { path: '/me', label: '我的', icon: 'M12 12a4 4 0 100-8 4 4 0 000 8zM4 21a8 8 0 0116 0' }
+];
+const ME_CHILDREN = ['/me', '/report', '/plan', '/profile'];
+
 const active = computed(() => {
   const seg = route.path.split('/')[1] || '';
   return seg ? `/${seg}` : '/';
 });
+
+const tabActive = computed(() => (ME_CHILDREN.includes(active.value) ? '/me' : active.value));
+
+// 从「我的」进入的子页面：手机端显示带返回箭头的标题栏
+const isMobileSub = computed(() => ['/report', '/plan', '/profile'].includes(active.value));
+
+// 底部导航只在五个主页面显示，其余页面隐藏
+const showTabbar = computed(() => tabs.some((t) => t.path === active.value));
 
 // 任意考生页进入即确保 profile 可用（否则页壳昵称显示兜底"同学"）
 onMounted(() => {
@@ -63,7 +81,7 @@ function onLogout() {
 </script>
 
 <template>
-  <div class="shell">
+  <div class="shell" :class="{ 'm-sub': isMobileSub, 'm-notab': !showTabbar }">
     <aside class="aside">
       <button class="brand" @click="go('/')">
         <span class="brand-mark">升</span>
@@ -90,6 +108,16 @@ function onLogout() {
       </div>
     </aside>
 
+    <header v-if="isMobileSub" class="m-subbar">
+      <button class="m-back" aria-label="返回" @click="router.push('/me')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M15 5l-7 7 7 7" />
+        </svg>
+      </button>
+      <span class="m-title">{{ route.meta.title }}</span>
+      <span class="m-spacer" aria-hidden="true"></span>
+    </header>
+
     <div class="main-col">
       <header class="topbar">
         <div class="date">{{ today }}</div>
@@ -111,6 +139,22 @@ function onLogout() {
         <router-view />
       </main>
     </div>
+
+    <nav v-if="showTabbar" class="tabbar" aria-label="主导航">
+      <button
+        v-for="t in tabs"
+        :key="t.path"
+        class="tab"
+        :class="{ active: tabActive === t.path }"
+        :aria-current="tabActive === t.path ? 'page' : undefined"
+        @click="go(t.path)"
+      >
+        <svg viewBox="0 0 24 24" class="tab-icon" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path :d="t.icon" />
+        </svg>
+        {{ t.label }}
+      </button>
+    </nav>
   </div>
 </template>
 
@@ -271,5 +315,71 @@ function onLogout() {
 .content { padding: 32px 24px; }
 @media (min-width: 640px) {
   .content { padding: 32px 40px; }
+}
+
+.tabbar { display: none; }
+.m-subbar { display: none; }
+@media (max-width: 767px) {
+  .aside { display: none; }
+  .topbar { display: none; }
+  .m-subbar {
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    display: grid;
+    grid-template-columns: 44px 1fr 44px;
+    align-items: center;
+    height: 52px;
+    margin-top: env(safe-area-inset-top);
+    border-bottom: 1px solid var(--border);
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(8px);
+  }
+  .m-back {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border: none;
+    background: transparent;
+    color: var(--text);
+  }
+  .m-back svg { width: 22px; height: 22px; }
+  .m-title { text-align: center; font-size: 17px; font-weight: 600; color: var(--text); }
+  .m-spacer { display: block; }
+  .shell.m-sub :deep(.page-head h1),
+  .shell.m-sub :deep(.page-head .sub) { display: none; }
+  .shell.m-sub :deep(.page-head:not(:has(.seg))) { display: none; }
+  .shell.m-notab .content { padding-bottom: 24px; }
+  .content {
+    padding: 16px 14px calc(84px + env(safe-area-inset-bottom));
+  }
+  .tabbar {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 40;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    border-top: 1px solid var(--border);
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(8px);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .tab {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    min-height: 56px;
+    padding: 8px 0 6px;
+    border: none;
+    background: transparent;
+    font-size: 11px;
+    color: var(--text-2);
+  }
+  .tab.active { color: var(--primary); font-weight: 500; }
+  .tab-icon { width: 22px; height: 22px; }
 }
 </style>
