@@ -305,16 +305,16 @@ onMounted(async () => {
           placeholder="按考生账号或错误信息搜索"
           @keyup.enter="search"
         />
-        <select v-model="query.gen_type" class="field field-w140" aria-label="功能类型">
-          <option value="">全部类型</option>
-          <option value="explain">错题讲解</option>
-          <option value="plan">复习计划</option>
-        </select>
-        <select v-model="query.status" class="field field-w140" aria-label="调用状态">
-          <option value="">全部状态</option>
-          <option value="success">成功</option>
-          <option value="failed">失败</option>
-        </select>
+        <el-select v-model="query.gen_type" class="field-w140" aria-label="功能类型">
+          <el-option label="全部类型" value="" />
+          <el-option label="错题讲解" value="explain" />
+          <el-option label="复习计划" value="plan" />
+        </el-select>
+        <el-select v-model="query.status" class="field-w140" aria-label="调用状态">
+          <el-option label="全部状态" value="" />
+          <el-option label="成功" value="success" />
+          <el-option label="失败" value="failed" />
+        </el-select>
         <button class="btn btn-ghost" @click="search">查询</button>
       </div>
 

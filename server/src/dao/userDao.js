@@ -66,4 +66,15 @@ async function setStatus(id, status) {
   await pool.query('UPDATE users SET status = ? WHERE id = ?', [status, id]);
 }
 
-module.exports = { findByUsername, findPasswordHash, findById, create, updateProfile, updatePassword, list, setStatus };
+// 管理端概览：账号总数、考生数、管理员数、已禁用数
+async function adminStats() {
+  const [rows] = await pool.query(
+    `SELECT COUNT(*) AS total,
+            COALESCE(SUM(role = 'student'), 0) AS student_total,
+            COALESCE(SUM(role = 'admin'), 0) AS admin_total,
+            COALESCE(SUM(status = 0), 0) AS disabled_total
+     FROM users`);
+  return rows[0];
+}
+
+module.exports = { findByUsername, findPasswordHash, findById, create, updateProfile, updatePassword, list, setStatus, adminStats };

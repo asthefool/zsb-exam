@@ -37,10 +37,12 @@ export const generateExplanation = (wrongQuestionId, force = 0) =>
 
 // ---- 管理端 ----
 export const adminListQuestions = (params) => request.get('/admin/questions', { params });
+export const adminQuestionStats = () => request.get('/admin/questions/stats');
 export const adminCreateQuestion = (data) => request.post('/admin/questions', data);
 export const adminUpdateQuestion = (id, data) => request.put(`/admin/questions/${id}`, data);
 export const adminDeleteQuestion = (id) => request.delete(`/admin/questions/${id}`);
 export const adminListUsers = (params) => request.get('/admin/users', { params });
+export const adminUserStats = () => request.get('/admin/users/stats');
 export const adminSetUserStatus = (id, status) => request.patch(`/admin/users/${id}/status`, { status });
 
 // ---- 管理端：错题管理 ----

@@ -5,13 +5,14 @@ import { ref, reactive, onMounted, computed } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import {
   getSubjects, adminListQuestions, adminCreateQuestion,
-  adminUpdateQuestion, adminDeleteQuestion
+  adminUpdateQuestion, adminDeleteQuestion, adminQuestionStats
 } from '../../api';
 import { Q_TYPE_LABEL } from '../../constants.js';
 
 const typeName = Q_TYPE_LABEL;
 const L = 'ABCDEFGH';
 
+const stats = reactive({ total: 0, enabled_total: 0, disabled_total: 0, today_new: 0 });
 const subjects = ref([]);
 const list = ref([]);
 const total = ref(0);
@@ -74,8 +75,21 @@ async function load() {
   }
 }
 
+async function loadStats() {
+  try {
+    Object.assign(stats, (await adminQuestionStats()) || {});
+  } catch (e) { /* 统计失败不影响列表 */ }
+}
+
 function search() {
   query.keyword = query.kwInput.trim();
+  query.page = 1;
+  load();
+}
+
+function resetFilters() {
+  query.kwInput = '';
+  query.keyword = '';
   query.page = 1;
   load();
 }
@@ -162,6 +176,7 @@ async function onSave() {
     }
     dialogVisible.value = false;
     load();
+    loadStats();
   } catch (e) {
     /* 失败由全局拦截器提示 */
   } finally {
@@ -182,6 +197,7 @@ async function onDelete(row) {
     await adminDeleteQuestion(row.id);
     ElMessage.success('已删除（软删）');
     load();
+    loadStats();
   } catch (e) {
     /* 失败由全局拦截器提示 */
   } finally {
@@ -190,6 +206,7 @@ async function onDelete(row) {
 }
 
 onMounted(async () => {
+  loadStats();
   try {
     subjects.value = await getSubjects();
   } catch (e) { subjects.value = []; }
@@ -198,75 +215,103 @@ onMounted(async () => {
 </script>
 
 <template>
-  <section class="panel" v-loading="loading">
-    <div class="panel-head">
-      <h2>题目管理</h2>
+  <div class="page-pad">
+    <div class="page-head">
+      <div>
+        <h1>题目管理</h1>
+        <p class="sub">维护题库中的题目，支持新建、编辑与软删除，修改后考生端与 AI 讲解自动同步。</p>
+      </div>
       <button class="btn btn-primary" @click="openDialog()">新建题目</button>
     </div>
 
-    <div class="toolbar">
-      <input
-        v-model="query.kwInput"
-        class="field field-search"
-        placeholder="按题干关键词搜索"
-        @keyup.enter="search"
-      />
-      <button class="btn btn-ghost" @click="search">搜索</button>
+    <div class="stat-grid">
+      <section class="panel stat-card">
+        <div class="label">题目总数</div>
+        <div class="value-row"><span class="value">{{ stats.total }}</span><span class="unit">题</span></div>
+        <div class="note">题库中未删除的题目</div>
+      </section>
+      <section class="panel stat-card">
+        <div class="label">启用中</div>
+        <div class="value-row"><span class="value">{{ stats.enabled_total }}</span><span class="unit">题</span></div>
+        <div class="note">考生端可见的题目</div>
+      </section>
+      <section class="panel stat-card">
+        <div class="label">已停用</div>
+        <div class="value-row"><span class="value">{{ stats.disabled_total }}</span><span class="unit">题</span></div>
+        <div class="note">暂不向考生展示</div>
+      </section>
+      <section class="panel stat-card">
+        <div class="label">今日新增</div>
+        <div class="value-row"><span class="value">{{ stats.today_new }}</span><span class="unit">题</span></div>
+        <div class="note">今天录入的题目</div>
+      </section>
     </div>
 
-    <div v-if="loadError" class="alert" style="margin: 0 20px 16px">
-      <span class="alert-main">题目列表加载失败</span>
-      <button class="btn btn-ghost" @click="load()">重新加载</button>
-    </div>
+    <section class="panel" v-loading="loading">
+      <div class="toolbar">
+        <input
+          v-model="query.kwInput"
+          class="field field-search"
+          placeholder="按题干关键词搜索"
+          @keyup.enter="search"
+        />
+        <button class="btn btn-ghost" @click="search">查询</button>
+        <button class="btn btn-text" @click="resetFilters">重置</button>
+      </div>
 
-    <div class="table-wrap">
-      <table class="table">
-        <thead>
-          <tr>
-            <th>ID</th><th>科目</th><th>题型</th><th>题干</th><th>正确答案</th><th>难度</th><th>状态</th><th>操作</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="q in list" :key="q.id">
-            <td class="muted">{{ q.id }}</td>
-            <td>{{ q.subject_name }}</td>
-            <td><span class="tag tag-muted">{{ typeName[q.q_type] || q.q_type }}</span></td>
-            <td class="cell-content" :title="q.content">{{ q.content }}</td>
-            <td>{{ formatAnswer(q) }}</td>
-            <td>{{ q.difficulty }}</td>
-            <td>
-              <span class="tag" :class="q.status === 1 ? 'tag-ok' : 'tag-bad'">
-                {{ q.status === 1 ? '启用' : '停用' }}
-              </span>
-            </td>
-            <td class="cell-actions">
-              <button class="btn btn-ghost btn-xs" @click="openDialog(q)">编辑</button>
-              <button class="btn btn-danger btn-xs" :disabled="deleting" @click="onDelete(q)">删除</button>
-            </td>
-          </tr>
-          <tr v-if="!list.length && !loading" class="empty">
-            <td colspan="8">暂无数据</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+      <div v-if="loadError" class="alert" style="margin: 0 20px 16px">
+        <span class="alert-main">题目列表加载失败</span>
+        <button class="btn btn-ghost" @click="load()">重新加载</button>
+      </div>
 
-    <div class="pager">
-      <span>共 {{ total }} 条</span>
-      <button class="btn btn-ghost" :disabled="query.page <= 1" @click="query.page--; load()">上一页</button>
-      <span class="page-num">{{ query.page }} / {{ pages }}</span>
-      <button class="btn btn-ghost" :disabled="query.page >= pages" @click="query.page++; load()">下一页</button>
-    </div>
+      <div class="table-wrap">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>ID</th><th>科目</th><th>题型</th><th>题干</th><th>正确答案</th><th>难度</th><th>状态</th><th>操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="q in list" :key="q.id">
+              <td class="muted">{{ q.id }}</td>
+              <td>{{ q.subject_name }}</td>
+              <td><span class="tag tag-muted">{{ typeName[q.q_type] || q.q_type }}</span></td>
+              <td class="cell-content" :title="q.content">{{ q.content }}</td>
+              <td>{{ formatAnswer(q) }}</td>
+              <td>{{ q.difficulty }}</td>
+              <td>
+                <span class="tag" :class="q.status === 1 ? 'tag-ok' : 'tag-bad'">
+                  {{ q.status === 1 ? '启用' : '停用' }}
+                </span>
+              </td>
+              <td class="cell-actions">
+                <button class="btn btn-ghost btn-xs" @click="openDialog(q)">编辑</button>
+                <button class="btn btn-danger btn-xs" :disabled="deleting" @click="onDelete(q)">删除</button>
+              </td>
+            </tr>
+            <tr v-if="!list.length && !loading" class="empty">
+              <td colspan="8">暂无数据</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="pager">
+        <span>共 {{ total }} 条</span>
+        <button class="btn btn-ghost" :disabled="query.page <= 1" @click="query.page--; load()">上一页</button>
+        <span class="page-num">{{ query.page }} / {{ pages }}</span>
+        <button class="btn btn-ghost" :disabled="query.page >= pages" @click="query.page++; load()">下一页</button>
+      </div>
+    </section>
 
     <!-- 编辑/新建弹窗 -->
     <el-dialog v-model="dialogVisible" :title="editingId ? '编辑题目' : '新建题目'" width="680px" destroy-on-close>
       <div class="form">
         <div>
           <div class="form-label"><span>科目</span></div>
-          <select v-model="form.subject_id" class="field field-w60">
-            <option :value="null">选择科目</option>
-            <option v-for="s in subjects" :key="s.id" :value="s.id">{{ s.name }}</option>
-          </select>
+          <el-select v-model="form.subject_id" class="field-w60" placeholder="选择科目">
+            <el-option v-for="s in subjects" :key="s.id" :label="s.name" :value="s.id" />
+          </el-select>
           <div v-if="err.subject" class="form-error">{{ err.subject }}</div>
         </div>
 
@@ -352,7 +397,7 @@ onMounted(async () => {
         <button class="btn btn-primary" :disabled="saving" @click="onSave">{{ saving ? '保存中…' : '保存' }}</button>
       </template>
     </el-dialog>
-  </section>
+  </div>
 </template>
 
 <style scoped>
@@ -363,9 +408,9 @@ onMounted(async () => {
   gap: 8px;
   padding: 16px 20px;
 }
-.field-search { width: 260px; }
+.field-search { width: 240px; }
 .cell-content {
-  max-width: 320px;
+  max-width: 300px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

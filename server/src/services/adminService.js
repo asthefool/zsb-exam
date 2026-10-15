@@ -80,6 +80,27 @@ async function listUsers(params) {
   return userDao.list(params);
 }
 
+// SUM 聚合返回 DECIMAL（字符串），统一转数字供前端直接使用
+async function userStats() {
+  const s = await userDao.adminStats();
+  return {
+    total: Number(s.total),
+    student_total: Number(s.student_total),
+    admin_total: Number(s.admin_total),
+    disabled_total: Number(s.disabled_total)
+  };
+}
+
+async function questionStats() {
+  const s = await questionDao.adminStats();
+  return {
+    total: Number(s.total),
+    enabled_total: Number(s.enabled_total),
+    disabled_total: Number(s.disabled_total),
+    today_new: Number(s.today_new)
+  };
+}
+
 async function setUserStatus(operatorId, id, { status }) {
   if (Number(operatorId) === Number(id)) {
     throw new BizError(CODES.BAD_REQUEST, '不能修改自己的账号状态');
@@ -99,4 +120,7 @@ async function setUserStatus(operatorId, id, { status }) {
   return { id, status: v };
 }
 
-module.exports = { listQuestions, createQuestion, updateQuestion, deleteQuestion, listUsers, setUserStatus };
+module.exports = {
+  listQuestions, createQuestion, updateQuestion, deleteQuestion, questionStats,
+  listUsers, setUserStatus, userStats
+};

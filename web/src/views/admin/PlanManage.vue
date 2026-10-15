@@ -173,12 +173,12 @@ onMounted(async () => {
           placeholder="按考生账号搜索"
           @keyup.enter="search"
         />
-        <select v-model="query.status" class="field field-w140" aria-label="计划状态">
-          <option value="">全部状态</option>
-          <option value="active">执行中</option>
-          <option value="archived">已归档</option>
-          <option value="finished">已完成</option>
-        </select>
+        <el-select v-model="query.status" class="field-w140" aria-label="计划状态">
+          <el-option label="全部状态" value="" />
+          <el-option label="执行中" value="active" />
+          <el-option label="已归档" value="archived" />
+          <el-option label="已完成" value="finished" />
+        </el-select>
         <button class="btn btn-ghost" @click="search">查询</button>
       </div>
 
