@@ -1,5 +1,5 @@
 <script setup>
-// 注册页（对齐 UI 库 Auth.tsx Register）：用户名 3-32 位字母数字下划线，密码 ≥6 位
+// 注册页：用户名 3-32 位字母数字下划线，密码 ≥6 位；版式由 AuthShell 提供
 import { reactive, ref, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus';
@@ -53,59 +53,81 @@ async function onSubmit() {
 
 <template>
   <AuthShell title="注册账号" sub="创建账号，开始你的备考之旅">
-    <form class="form-fields" @submit.prevent="onSubmit" novalidate>
-      <div>
-        <div class="form-label"><span>用户名</span></div>
-        <input
-          v-model="form.username"
-          class="field"
-          placeholder="3-32 位字母、数字或下划线"
-          @blur="check('username')"
-        />
-        <div v-if="err.username" class="form-error">{{ err.username }}</div>
+    <form novalidate @submit.prevent="onSubmit">
+      <div class="auth-field">
+        <label class="auth-label" for="reg-username">用户名</label>
+        <div class="auth-control plain">
+          <input
+            id="reg-username"
+            v-model="form.username"
+            type="text"
+            placeholder="3-32 位字母、数字或下划线"
+            autocomplete="username"
+            :aria-invalid="err.username ? 'true' : 'false'"
+            @blur="check('username')"
+            @input="err.username = ''"
+          />
+        </div>
+        <p v-if="err.username" class="auth-err">{{ err.username }}</p>
       </div>
-      <div>
-        <div class="form-label"><span>昵称（可选）</span><span class="hint">{{ nickCount }}</span></div>
-        <input
-          v-model="form.nickname"
-          class="field"
-          maxlength="32"
-          placeholder="用于展示，可随时修改"
-        />
+
+      <div class="auth-field">
+        <label class="auth-label" for="reg-nickname">
+          <span>昵称（可选）</span>
+          <span class="auth-hint">{{ nickCount }}</span>
+        </label>
+        <div class="auth-control plain">
+          <input
+            id="reg-nickname"
+            v-model="form.nickname"
+            type="text"
+            maxlength="32"
+            placeholder="用于展示，可随时修改"
+          />
+        </div>
       </div>
-      <div>
-        <div class="form-label"><span>密码</span></div>
-        <input
-          v-model="form.password"
-          class="field"
-          type="password"
-          placeholder="至少 6 位"
-          @blur="check('password')"
-        />
-        <div v-if="err.password" class="form-error">{{ err.password }}</div>
+
+      <div class="auth-field">
+        <label class="auth-label" for="reg-password">密码</label>
+        <div class="auth-control plain">
+          <input
+            id="reg-password"
+            v-model="form.password"
+            type="password"
+            placeholder="至少 6 位"
+            autocomplete="new-password"
+            :aria-invalid="err.password ? 'true' : 'false'"
+            @blur="check('password')"
+            @input="err.password = ''"
+          />
+        </div>
+        <p v-if="err.password" class="auth-err">{{ err.password }}</p>
       </div>
-      <div>
-        <div class="form-label"><span>确认密码</span></div>
-        <input
-          v-model="form.confirm"
-          class="field"
-          type="password"
-          @blur="check('confirm')"
-        />
-        <div v-if="err.confirm" class="form-error">{{ err.confirm }}</div>
+
+      <div class="auth-field">
+        <label class="auth-label" for="reg-confirm">确认密码</label>
+        <div class="auth-control plain">
+          <input
+            id="reg-confirm"
+            v-model="form.confirm"
+            type="password"
+            autocomplete="new-password"
+            :aria-invalid="err.confirm ? 'true' : 'false'"
+            @blur="check('confirm')"
+            @input="err.confirm = ''"
+          />
+        </div>
+        <p v-if="err.confirm" class="auth-err">{{ err.confirm }}</p>
       </div>
-      <button class="btn btn-primary btn-block" type="submit" :disabled="busy">
+
+      <button class="auth-submit" type="submit" :disabled="busy">
         {{ busy ? '提交中…' : '注 册' }}
       </button>
     </form>
+
     <template #foot>
       已有账号？
-      <router-link class="link" to="/login">去登录</router-link>
+      <router-link class="auth-link" to="/login">去登录</router-link>
     </template>
   </AuthShell>
 </template>
-
-<style scoped>
-.link { font-weight: 500; color: var(--primary); text-decoration: none; }
-.link:hover { text-decoration: underline; }
-</style>

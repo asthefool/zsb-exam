@@ -84,8 +84,7 @@ function onLogout() {
   <div class="shell" :class="{ 'm-sub': isMobileSub, 'm-notab': !showTabbar }">
     <aside class="aside">
       <button class="brand" @click="go('/')">
-        <span class="brand-mark">升</span>
-        <span class="brand-name">专升本智能备考</span>
+        <span class="brand-name">专升本<span>智能备考</span></span>
       </button>
       <nav class="nav">
         <button
@@ -193,19 +192,12 @@ function onLogout() {
   border: none;
   text-align: left;
 }
-.brand-mark {
-  display: grid;
-  place-items: center;
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
-  background: var(--primary);
-  color: #fff;
-  font-size: 14px;
-  font-weight: 700;
-  flex-shrink: 0;
+.brand-name {
+  font: 600 17px/1.2 var(--font-serif);
+  letter-spacing: 0.16em;
+  color: var(--text);
 }
-.brand-name { font-size: 15px; font-weight: 700; color: var(--text); }
+.brand-name span { font-weight: 400; opacity: 0.72; }
 .nav {
   margin-top: 16px;
   display: flex;

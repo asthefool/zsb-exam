@@ -21,6 +21,7 @@
   --amber: #b45309;
   --amber-soft: #fdf1df;
   --font: 'Noto Sans SC', 'Source Han Sans SC', 'PingFang SC', 'Microsoft YaHei', system-ui, sans-serif;
+  --font-serif: 'Source Han Serif SC', 'Noto Serif SC', 'Songti SC', 'STSong', 'SimSun', serif;
 
   /* Element Plus 主题覆盖 */
   --el-color-primary: #1d4fd7;
@@ -76,6 +77,12 @@ body {
 }
 
 h1, h2, h3, h4 { margin: 0; color: var(--text); font-weight: 700; }
+/* 标题与品牌字标统一衬线体（思源宋体），与登录页品牌字标一致 */
+h1, h2, h3, h4,
+.brand-name, .logo-name,
+.el-dialog__title, .el-drawer__title, .el-message-box__title {
+  font-family: var(--font-serif);
+}
 p { margin: 0; }
 button { cursor: pointer; font-family: inherit; }
 button:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
