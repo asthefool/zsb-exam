@@ -17,6 +17,7 @@ const subjects = ref([]);
 const list = ref([]);
 const total = ref(0);
 const loading = ref(false);
+const loadingMore = ref(false);
 const filter = reactive({ subject_id: '', mastered: '0', page: 1 });
 
 const stats = reactive({ total: 0, unmastered: 0, mastered: 0 });
@@ -50,22 +51,38 @@ async function loadStats() {
 }
 
 let listSeq = 0;
-async function load() {
+async function load({ append = false } = {}) {
   const seq = ++listSeq;
-  loading.value = true;
+  if (append) loadingMore.value = true;
+  else loading.value = true;
   try {
-    const data = await getWrongQuestions({
+    // 手机端刷新时重新拉取已加载的全部页，避免列表被截成当前页
+    const mobileRefresh = !append && window.matchMedia('(max-width: 767px)').matches;
+    const pageNums = mobileRefresh
+      ? Array.from({ length: filter.page }, (_, i) => i + 1)
+      : [filter.page];
+    const results = await Promise.all(pageNums.map((page) => getWrongQuestions({
       subject_id: filter.subject_id || undefined,
       mastered: filter.mastered === '' ? undefined : filter.mastered,
-      page: filter.page, size: 10
-    });
+      page, size: 10
+    })));
     if (seq !== listSeq) return;
-    list.value = data.list;
-    total.value = data.total;
-    loadStats();
+    const rows = results.flatMap((r) => r.list);
+    list.value = append ? [...list.value, ...rows] : rows;
+    total.value = results[0].total;
+    if (!append) loadStats();
   } finally {
-    if (seq === listSeq) loading.value = false;
+    if (seq === listSeq) {
+      loading.value = false;
+      loadingMore.value = false;
+    }
   }
+}
+
+// 手机端「加载更多」：追加下一页，已加载的列表保留
+function loadMore() {
+  filter.page += 1;
+  load({ append: true });
 }
 
 function onFilterChange() {
@@ -237,7 +254,19 @@ onMounted(async () => {
     </ul>
     <div v-else-if="!loading" class="panel empty-tip">当前筛选下暂无错题</div>
 
-    <!-- 分页 -->
+    <!-- 手机端：加载更多 -->
+    <div v-if="total > 10" class="m-more">
+      <span class="text-sm muted">已显示 {{ list.length }} / {{ total }} 条</span>
+      <button
+        v-if="list.length < total"
+        class="btn btn-ghost m-more-btn"
+        :disabled="loadingMore"
+        @click="loadMore"
+      >{{ loadingMore ? '加载中…' : '加载更多' }}</button>
+      <span v-else class="text-sm muted">已全部显示</span>
+    </div>
+
+    <!-- 分页（桌面端） -->
     <div v-if="total > 10" class="pager">
       <span class="text-sm muted">共 {{ total }} 条</span>
       <button class="btn btn-ghost" :disabled="filter.page <= 1" @click="filter.page--; load()">上一页</button>
@@ -282,8 +311,23 @@ onMounted(async () => {
 
 <style scoped>
 .stat-grid.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-@media (max-width: 640px) {
-  .stat-grid.three { grid-template-columns: 1fr; }
+@media (max-width: 767px) {
+  .stat-grid.three {
+    gap: 0;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--card);
+  }
+  .stat-grid.three .stat-card {
+    border: none;
+    border-radius: 0;
+    background: transparent;
+    padding: 14px 10px;
+  }
+  .stat-grid.three .stat-card + .stat-card { border-left: 1px solid var(--border); }
+  .stat-grid.three .value { font-size: 22px; }
+  .stat-grid.three .note { font-size: 11px; line-height: 1.4; }
 }
 .filter-panel {
   display: flex;
@@ -292,6 +336,53 @@ onMounted(async () => {
   padding: 16px;
 }
 .chip-row { display: flex; flex-wrap: wrap; gap: 6px; }
+@media (max-width: 767px) {
+  /* 手机端筛选区吸顶：全宽铺满，科目单行横向滑动，避免吸顶区过高 */
+  .filter-panel {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    gap: 10px;
+    margin-left: -14px;
+    margin-right: -14px;
+    padding: 12px 14px;
+    border-radius: 0;
+    border-width: 0 0 1px;
+    background: var(--card);
+  }
+  .filter-panel .seg {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    width: 100%;
+    border-radius: 10px;
+  }
+  .filter-panel .seg-item {
+    width: 100%;
+    height: 34px;
+    padding: 0;
+    text-align: center;
+  }
+  .chip-row {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    margin: 0 -14px;
+    padding: 0 14px;
+  }
+  .chip-row::-webkit-scrollbar { display: none; }
+  .chip-row > * { flex-shrink: 0; }
+  .chip { height: 32px; padding: 0 14px; }
+
+  .list .item { padding: 16px; }
+  .list .item .acts {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    margin-top: 14px;
+  }
+  .list .item .acts > .btn { width: 100%; min-height: 40px; }
+  .list .item .acts > .btn:first-child { grid-column: 1 / -1; }
+}
 .list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
 .item { padding: 20px; }
 .tag-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 12px; }
@@ -314,6 +405,18 @@ onMounted(async () => {
   padding: 16px 20px;
   font-size: 14px;
   color: var(--text-2);
+}
+.m-more { display: none; }
+@media (max-width: 767px) {
+  .pager { display: none; }
+  .m-more {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 0 4px;
+  }
+  .m-more-btn { width: 100%; min-height: 44px; }
 }
 .drawer-stem {
   margin-top: 16px;

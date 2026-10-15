@@ -48,6 +48,14 @@ const examInfo = computed(() => {
 
 // 综合预估分 = Σ 科目掌握度 × 单科满分（与题库、学情报告同一口径）
 const estimate = computed(() => overview.value?.mastery?.estimate?.score || 0);
+const estimateMax = computed(() => overview.value?.mastery?.estimate?.max || 400);
+const evaluatedCount = computed(() => overview.value?.mastery?.estimate?.evaluated || 0);
+
+const todayLabel = (() => {
+  const d = new Date();
+  const week = ['日', '一', '二', '三', '四', '五', '六'][d.getDay()];
+  return `${d.getMonth() + 1} 月 ${d.getDate()} 日 周${week}`;
+})();
 
 // 连续打卡：当前计划中连续完成任务的天数（真实数据）
 const streak = computed(() => {
@@ -241,15 +249,39 @@ onMounted(load);
 </script>
 
 <template>
-  <div v-loading="loading" class="page-pad">
+  <div v-loading="loading" class="page-pad m-flow">
     <!-- 页头 -->
     <div class="page-head">
       <div>
+        <p class="m-date">{{ todayLabel }}</p>
         <h1>早上好，{{ nickname }}</h1>
         <p class="sub">
           <template v-if="studyDays">已持续备考 {{ studyDays }} 天</template><template v-if="examInfo">，距离考试还有 {{ examInfo.daysLeft }} 天。</template><template v-else>。</template>
         </p>
       </div>
+    </div>
+
+    <!-- 移动端概览卡（桌面端隐藏，统计卡在移动端隐藏） -->
+    <div class="m-hero">
+      <div class="m-hero-top">
+        <div>
+          <div class="m-hero-label">综合预估分</div>
+          <div class="m-hero-score">
+            <span>{{ estimate }}</span>
+            <small>/ {{ estimateMax }}</small>
+          </div>
+          <div class="m-hero-sub">已评估 {{ evaluatedCount }}/{{ subjects.length }} 科</div>
+        </div>
+        <div class="m-hero-right">
+          <div class="m-hero-label">距离考试</div>
+          <div class="m-hero-days">{{ examInfo ? examInfo.daysLeft : '—' }}<small>天</small></div>
+          <div class="m-hero-sub">连续打卡 {{ streak }} 天</div>
+        </div>
+      </div>
+      <button class="m-hero-foot" @click="router.push('/report')">
+        <span>查看学情报告</span>
+        <span aria-hidden="true">›</span>
+      </button>
     </div>
 
     <div v-if="error" class="alert">
@@ -302,7 +334,7 @@ onMounted(load);
 
     <!-- 今日学习计划 + 本周学习时长 -->
     <div class="grid-plan">
-      <section class="panel">
+      <section class="panel m-today">
         <div class="panel-head">
           <h2>今日学习计划</h2>
           <div class="head-right">
@@ -333,7 +365,7 @@ onMounted(load);
         </div>
       </section>
 
-      <section class="panel panel-pad align-start">
+      <section class="panel panel-pad align-start m-week">
         <div class="flex-between">
           <h2>本周学习时长</h2>
           <span class="text-xs muted">共 {{ weekHours.toFixed(1) }} 小时</span>
@@ -347,11 +379,12 @@ onMounted(load);
         <div class="bar-labels">
           <span v-for="d in weekBars" :key="d.key" class="bar-label">{{ d.label }}</span>
         </div>
+        <p v-if="weekHours === 0" class="bar-empty">本周还没有学习记录</p>
       </section>
     </div>
 
     <!-- 科目掌握度 -->
-    <section class="panel">
+    <section class="panel m-mastery">
       <div class="panel-head">
         <h2>科目掌握度</h2>
       </div>
@@ -396,7 +429,7 @@ onMounted(load);
     </section>
 
     <!-- 每日一题 -->
-    <section class="panel panel-pad">
+    <section class="panel panel-pad m-daily">
       <div class="flex-between">
         <h2>每日一题</h2>
         <span class="tag tag-warn">难度 {{ daily?.difficulty ?? 2 }}</span>
@@ -456,6 +489,66 @@ onMounted(load);
   font-weight: 500;
 }
 .ai-text { flex: 1; min-width: 0; font-size: 14px; line-height: 1.625; }
+@media (max-width: 767px) {
+  .ai-bar { flex-direction: column; align-items: stretch; gap: 12px; padding: 16px; }
+  .ai-badge { align-self: flex-start; }
+  .ai-bar .btn { width: 100%; }
+}
+
+.m-date,
+.m-hero { display: none; }
+@media (max-width: 767px) {
+  .m-date { display: block; font-size: 13px; color: var(--text-2); }
+  .page-head .sub { display: none; }
+  .page-head h1 { margin-top: 4px; }
+  .stat-grid { display: none; }
+  .m-hero {
+    display: block;
+    overflow: hidden;
+    border-radius: 16px;
+    background: var(--primary);
+    color: #fff;
+  }
+  .m-hero-top {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 20px 20px 16px;
+  }
+  .m-hero-right { text-align: right; }
+  .m-hero-label { font-size: 13px; color: rgba(255, 255, 255, 0.8); }
+  .m-hero-score {
+    margin-top: 4px;
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+    font-size: 48px;
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: -0.025em;
+  }
+  .m-hero-score small { font-size: 16px; font-weight: 400; color: rgba(255, 255, 255, 0.7); }
+  .m-hero-days {
+    margin-top: 4px;
+    font-size: 32px;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+  .m-hero-days small { margin-left: 4px; font-size: 16px; font-weight: 400; }
+  .m-hero-sub { margin-top: 6px; font-size: 12px; color: rgba(255, 255, 255, 0.8); }
+  .m-hero-foot {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    justify-content: space-between;
+    border: none;
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+    background: transparent;
+    padding: 14px 20px;
+    font-size: 14px;
+    color: #fff;
+  }
+}
 .grid-plan {
   display: grid;
   gap: 24px;
@@ -540,11 +633,29 @@ onMounted(load);
   padding-top: 8px;
 }
 .bar-label { flex: 1; text-align: center; font-size: 12px; color: var(--text-2); }
+.bar-empty { margin-top: 16px; font-size: 13px; color: var(--text-2); text-align: center; }
+@media (max-width: 767px) {
+  .bar-chart { margin-top: 16px; height: 96px; gap: 8px; }
+  .bar-labels { margin-top: 6px; }
+}
+
+/* 移动端区块顺序：概览 → AI 建议 → 今日计划 → 每日一题 → 科目掌握度 → 本周时长 */
+@media (max-width: 767px) {
+  .m-flow.page-pad { display: flex; flex-direction: column; gap: 24px; }
+  .m-flow.page-pad > * { margin-top: 0; }
+  .grid-plan { display: contents; }
+  .m-hero { order: 1; }
+  .ai-bar { order: 2; }
+  .m-today { order: 3; }
+  .m-daily { order: 4; }
+  .m-mastery { order: 5; }
+  .m-week { order: 6; align-self: stretch; }
+}
 
 /* 科目掌握度 */
 .grid-mastery {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: minmax(0, 1fr);
 }
 @media (min-width: 1024px) {
   .grid-mastery { grid-template-columns: 1fr 1.1fr; }

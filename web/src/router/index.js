@@ -15,7 +15,8 @@ const routes = [
       { path: 'wrong-book', name: 'wrongBook', component: () => import('../views/student/WrongBook.vue'), meta: { title: '错题本' } },
       { path: 'report', name: 'report', component: () => import('../views/student/Report.vue'), meta: { title: '学情报告' } },
       { path: 'plan', name: 'plan', component: () => import('../views/student/Plan.vue'), meta: { title: '复习计划' } },
-      { path: 'profile', name: 'profile', component: () => import('../views/student/Profile.vue'), meta: { title: '个人中心' } }
+      { path: 'profile', name: 'profile', component: () => import('../views/student/Profile.vue'), meta: { title: '个人中心' } },
+      { path: 'me', name: 'me', component: () => import('../views/student/Me.vue'), meta: { title: '我的' } }
     ]
   },
   {

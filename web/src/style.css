@@ -114,6 +114,14 @@ button:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
 .stat-card .unit { font-size: 14px; color: var(--text-2); }
 .stat-card .note { margin-top: 4px; font-size: 12px; color: var(--text-2); }
 .stat-card .note.up { color: var(--green); }
+@media (max-width: 767px) {
+  .stat-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .stat-card { padding: 14px; }
+  .stat-card .label { font-size: 13px; }
+  .stat-card .value { font-size: 24px; }
+  .stat-card .unit { font-size: 12px; }
+  .stat-card .note { font-size: 11px; line-height: 1.4; }
+}
 
 /* ---- 按钮（源码 Primary / Ghost） ---- */
 .btn {
