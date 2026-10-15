@@ -435,4 +435,24 @@ textarea.field { resize: vertical; }
 .el-dialog__body { padding: 20px 24px; }
 .el-dialog__footer { padding: 16px 24px; border-top: 1px solid var(--border); }
 .el-button { font-weight: 500; }
-.el-select__wrapper { border-radius: 8px; }
+/* 下拉框（el-select）与 .field 输入框同源外观：白底、1px 边框、8px 圆角、主色聚焦环 */
+.el-select { width: 100%; }
+.el-select__wrapper {
+  min-height: 36px;
+  padding: 4px 12px;
+  border-radius: 8px;
+  background: var(--card);
+  box-shadow: 0 0 0 1px var(--border) inset;
+  font-size: 14px;
+  transition: box-shadow 0.15s;
+}
+.el-select__wrapper:hover { box-shadow: 0 0 0 1px rgba(29, 79, 215, 0.4) inset; }
+.el-select__wrapper.is-focused { box-shadow: 0 0 0 1px var(--primary) inset, 0 0 0 3px rgba(29, 79, 215, 0.15); }
+.el-select__wrapper.is-disabled { background: var(--bg); box-shadow: 0 0 0 1px var(--border) inset; }
+.el-select__selected-item { color: var(--text); }
+.el-select__placeholder { color: rgba(91, 103, 121, 0.6); }
+.el-select__caret { color: var(--text-2); }
+.el-select-dropdown { border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 8px 24px rgba(15, 26, 43, 0.12); padding: 4px; }
+.el-select-dropdown__item { height: 34px; line-height: 34px; padding: 0 12px; border-radius: 6px; font-size: 14px; color: var(--text); }
+.el-select-dropdown__item.is-hovering { background: var(--bg); }
+.el-select-dropdown__item.is-selected { color: var(--primary); font-weight: 500; background: var(--primary-soft); }

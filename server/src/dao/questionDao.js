@@ -79,4 +79,15 @@ async function bankStats() {
   return rows;
 }
 
-module.exports = { listSubjects, listQuestions, findById, adminList, create, update, softDelete, bankStats };
+// 管理端概览：题目总数（未软删）、启用数、停用数、今日新增
+async function adminStats() {
+  const [rows] = await pool.query(
+    `SELECT COUNT(*) AS total,
+            COALESCE(SUM(status = 1), 0) AS enabled_total,
+            COALESCE(SUM(status = 0), 0) AS disabled_total,
+            COALESCE(SUM(DATE(created_at) = CURDATE()), 0) AS today_new
+     FROM questions WHERE deleted_at IS NULL`);
+  return rows[0];
+}
+
+module.exports = { listSubjects, listQuestions, findById, adminList, create, update, softDelete, bankStats, adminStats };

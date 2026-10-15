@@ -161,15 +161,15 @@ onMounted(async () => {
           placeholder="按考生账号或题干搜索"
           @keyup.enter="search"
         />
-        <select v-model="query.subject_id" class="field field-w140" aria-label="科目">
-          <option value="">全部科目</option>
-          <option v-for="s in subjects" :key="s.id" :value="String(s.id)">{{ s.name }}</option>
-        </select>
-        <select v-model="query.mastered" class="field field-w140" aria-label="掌握状态">
-          <option value="">全部状态</option>
-          <option value="0">未掌握</option>
-          <option value="1">已掌握</option>
-        </select>
+        <el-select v-model="query.subject_id" class="field-w140" aria-label="科目">
+          <el-option label="全部科目" value="" />
+          <el-option v-for="s in subjects" :key="s.id" :label="s.name" :value="String(s.id)" />
+        </el-select>
+        <el-select v-model="query.mastered" class="field-w140" aria-label="掌握状态">
+          <el-option label="全部状态" value="" />
+          <el-option label="未掌握" value="0" />
+          <el-option label="已掌握" value="1" />
+        </el-select>
         <button class="btn btn-ghost" @click="search">查询</button>
         <button class="btn btn-text" @click="resetFilters">重置</button>
       </div>

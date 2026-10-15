@@ -320,9 +320,9 @@ onMounted(async () => {
         <section class="panel align-start">
           <div class="panel-head">
             <h2>推荐练习</h2>
-            <select v-model="diff" class="field select-sm" aria-label="难度">
-              <option v-for="d in DIFFS" :key="d">{{ d }}</option>
-            </select>
+            <el-select v-model="diff" class="select-sm" aria-label="难度">
+              <el-option v-for="d in DIFFS" :key="d" :label="d" :value="d" />
+            </el-select>
           </div>
           <ul v-if="shownRec.length" class="row-list">
             <li v-for="p in shownRec" :key="p.key" class="rec-row">
@@ -422,11 +422,7 @@ export default { methods: { parseOptions } };
   font-size: 12px;
   color: var(--text-2);
 }
-.select-sm {
-  width: auto;
-  padding: 4px 8px;
-  font-size: 14px;
-}
+.select-sm { width: 120px; }
 
 /* 答题会话 */
 .q-panel { padding: 24px; }

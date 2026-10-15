@@ -19,6 +19,10 @@ router.get('/admin/questions', wrap(async (req, res) => {
   ok(res, { ...data, page: p.page, size: p.size });
 }));
 
+router.get('/admin/questions/stats', wrap(async (req, res) => {
+  ok(res, await adminService.questionStats());
+}));
+
 router.post('/admin/questions', wrap(async (req, res) => {
   ok(res, await adminService.createQuestion(req.body), '题目已创建');
 }));
@@ -33,6 +37,10 @@ router.delete('/admin/questions/:id', wrap(async (req, res) => {
 }));
 
 // ---- 用户管理（F8-2）----
+router.get('/admin/users/stats', wrap(async (req, res) => {
+  ok(res, await adminService.userStats());
+}));
+
 router.get('/admin/users', wrap(async (req, res) => {
   const p = pager(req.query);
   const data = await adminService.listUsers({
