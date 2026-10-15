@@ -1,0 +1,200 @@
+{
+  "project_root": "C:\\Users\\ASUS\\Desktop\\my-work\\毕设\\zsb-exam\\web",
+  "discovery_level": "heuristic_candidates_only",
+  "files_listed": 24,
+  "packages": [
+    {
+      "path": "package.json",
+      "name": "zsb-exam-web",
+      "framework_versions": {
+        "vite": "^5.4.8",
+        "vue": "^3.5.10",
+        "vue-router": "^4.4.5"
+      },
+      "script_names": [
+        "build",
+        "dev",
+        "preview"
+      ],
+      "package_manager": "not declared"
+    }
+  ],
+  "route_source_candidates": [],
+  "path_literal_candidates": [
+    {
+      "value": "/login",
+      "path": "src\\views\\student\\Register.vue",
+      "line": 67,
+      "kind": "literal path/navigation candidate, may be a link rather than route declaration"
+    },
+    {
+      "value": "/register",
+      "path": "src\\views\\student\\Login.vue",
+      "line": 51,
+      "kind": "literal path/navigation candidate, may be a link rather than route declaration"
+    },
+    {
+      "value": "/practice",
+      "path": "src\\views\\student\\Home.vue",
+      "line": 21,
+      "kind": "literal path/navigation candidate, may be a link rather than route declaration"
+    },
+    {
+      "value": "/wrong-book",
+      "path": "src\\views\\student\\Home.vue",
+      "line": 22,
+      "kind": "literal path/navigation candidate, may be a link rather than route declaration"
+    },
+    {
+      "value": "/plan",
+      "path": "src\\views\\student\\Home.vue",
+      "line": 23,
+      "kind": "literal path/navigation candidate, may be a link rather than route declaration"
+    },
+    {
+      "value": "/profile",
+      "path": "src\\views\\student\\Home.vue",
+      "line": 24,
+      "kind": "literal path/navigation candidate, may be a link rather than route declaration"
+    },
+    {
+      "value": "/",
+      "path": "src\\layout\\StudentLayout.vue",
+      "line": 13,
+      "kind": "literal path/navigation candidate, may be a link rather than route declaration"
+    },
+    {
+      "value": "/practice",
+      "path": "src\\layout\\StudentLayout.vue",
+      "line": 14,
+      "kind": "literal path/navigation candidate, may be a link rather than route declaration"
+    },
+    {
+      "value": "/wrong-book",
+      "path": "src\\layout\\StudentLayout.vue",
+      "line": 15,
+      "kind": "literal path/navigation candidate, may be a link rather than route declaration"
+    },
+    {
+      "value": "/plan",
+      "path": "src\\layout\\StudentLayout.vue",
+      "line": 16,
+      "kind": "literal path/navigation candidate, may be a link rather than route declaration"
+    },
+    {
+      "value": "/profile",
+      "path": "src\\layout\\StudentLayout.vue",
+      "line": 17,
+      "kind": "literal path/navigation candidate, may be a link rather than route declaration"
+    },
+    {
+      "value": "/admin/questions",
+      "path": "src\\layout\\AdminLayout.vue",
+      "line": 10,
+      "kind": "literal path/navigation candidate, may be a link rather than route declaration"
+    },
+    {
+      "value": "/admin/users",
+      "path": "src\\layout\\AdminLayout.vue",
+      "line": 11,
+      "kind": "literal path/navigation candidate, may be a link rather than route declaration"
+    },
+    {
+      "value": "/login",
+      "path": "src\\router\\index.js",
+      "line": 5,
+      "kind": "literal path/navigation candidate, may be a link rather than route declaration"
+    },
+    {
+      "value": "/register",
+      "path": "src\\router\\index.js",
+      "line": 6,
+      "kind": "literal path/navigation candidate, may be a link rather than route declaration"
+    },
+    {
+      "value": "/",
+      "path": "src\\router\\index.js",
+      "line": 8,
+      "kind": "literal path/navigation candidate, may be a link rather than route declaration"
+    },
+    {
+      "value": "/admin",
+      "path": "src\\router\\index.js",
+      "line": 20,
+      "kind": "literal path/navigation candidate, may be a link rather than route declaration"
+    },
+    {
+      "value": "/:pathMatch(.*)*",
+      "path": "src\\router\\index.js",
+      "line": 29,
+      "kind": "literal path/navigation candidate, may be a link rather than route declaration"
+    },
+    {
+      "value": "/login",
+      "path": "src\\router\\index.js",
+      "line": 39,
+      "kind": "literal path/navigation candidate, may be a link rather than route declaration"
+    },
+    {
+      "value": "/admin/questions",
+      "path": "src\\router\\index.js",
+      "line": 43,
+      "kind": "literal path/navigation candidate, may be a link rather than route declaration"
+    },
+    {
+      "value": "/",
+      "path": "src\\router\\index.js",
+      "line": 43,
+      "kind": "literal path/navigation candidate, may be a link rather than route declaration"
+    }
+  ],
+  "component_declaration_candidates": [
+    {
+      "name": "PAGE_SIZE",
+      "path": "src\\constants.js",
+      "line": 3,
+      "kind": "capitalized declaration candidate, may not be a rendered component"
+    },
+    {
+      "name": "Q_TYPE_LABEL",
+      "path": "src\\constants.js",
+      "line": 5,
+      "kind": "capitalized declaration candidate, may not be a rendered component"
+    },
+    {
+      "name": "STORAGE_KEYS",
+      "path": "src\\constants.js",
+      "line": 11,
+      "kind": "capitalized declaration candidate, may not be a rendered component"
+    },
+    {
+      "name": "TIMEOUT",
+      "path": "src\\constants.js",
+      "line": 17,
+      "kind": "capitalized declaration candidate, may not be a rendered component"
+    },
+    {
+      "name": "TYPE_LABEL",
+      "path": "src\\views\\admin\\QuestionManage.vue",
+      "line": 125,
+      "kind": "capitalized declaration candidate, may not be a rendered component"
+    },
+    {
+      "name": "KEY_POOL",
+      "path": "src\\views\\admin\\QuestionManage.vue",
+      "line": 126,
+      "kind": "capitalized declaration candidate, may not be a rendered component"
+    }
+  ],
+  "configuration_candidates": [
+    "vite.config.js"
+  ],
+  "skipped": [],
+  "warnings": [],
+  "must_reconcile": [
+    "Resolve framework routes, dynamic parameters, aliases, guards, redirects, flags, nested and parallel routes.",
+    "Inspect runtime navigation and pages reachable only through dialogs, roles, tenant settings or deep links.",
+    "Map rendered UI instances, including conditionally rendered and inline components.",
+    "Do not use this file as proof that all routes or components have been discovered or reviewed."
+  ]
+}

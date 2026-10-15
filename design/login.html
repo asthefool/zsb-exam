@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>登录 · 专升本智能备考系统</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="base.css">
+<style>
+  /* ===== 页面私有样式（对应 Login.vue 的 <style scoped>） ===== */
+  .auth { display: grid; grid-template-columns: 1.05fr 1fr; min-height: 100vh; }
+
+  /* 左：暖米品牌区 */
+  .auth-aside {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: var(--sp-8);
+    padding: var(--sp-10) 56px;
+    background: var(--canvas-sunken);
+    border-right: 1px solid var(--line);
+    overflow: hidden;
+  }
+  .auth-aside .brand { padding: 0; }
+  .auth-mark { width: 40px; height: 40px; border-radius: var(--r-md); }
+  .auth-mark .ico { width: 22px; height: 22px; }
+  .brand-name.lg { font-size: 17px; }
+
+  /* 角落的星芒水印 */
+  .aside-glow {
+    position: absolute;
+    right: -70px;
+    bottom: -70px;
+    width: 300px;
+    height: 300px;
+    color: var(--coral);
+    opacity: .07;
+    pointer-events: none;
+  }
+  .aside-glow .ico { width: 100%; height: 100%; }
+
+  .auth-lead { position: relative; }
+  .auth-lead h1 {
+    font-size: 34px;
+    line-height: 1.42;
+    font-weight: 600;
+    letter-spacing: .4px;
+  }
+  .auth-lead h1 em {
+    font-style: normal;
+    color: var(--coral-active);
+    position: relative;
+  }
+  .auth-lead h1 em::after {
+    content: '';
+    position: absolute;
+    left: 0; right: 0; bottom: 2px;
+    height: 8px;
+    background: var(--coral-soft);
+    z-index: -1;
+    border-radius: 2px;
+  }
+  .auth-lead p { margin-top: var(--sp-4); color: var(--text-2); font-size: 15px; }
+
+  .auth-feats { position: relative; display: flex; flex-direction: column; gap: var(--sp-4); }
+  .auth-feat { display: flex; align-items: flex-start; gap: var(--sp-3); }
+  .auth-feat .dot {
+    flex-shrink: 0;
+    width: 30px; height: 30px;
+    border-radius: var(--r-sm);
+    background: var(--surface);
+    border: 1px solid var(--line);
+    color: var(--coral);
+    display: grid;
+    place-items: center;
+  }
+  .auth-feat b { display: block; font-size: var(--fs-body); font-weight: 500; color: var(--ink); }
+  .auth-feat span { font-size: var(--fs-small); color: var(--text-2); line-height: 1.6; }
+
+  .auth-legal { position: relative; font-size: var(--fs-cap); color: var(--text-3); }
+
+  /* 右：表单区 */
+  .auth-main {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--sp-6);
+    background: var(--canvas);
+  }
+  .auth-form {
+    width: 100%;
+    max-width: 384px;
+    background: var(--surface);
+    border: 1px solid var(--line-soft);
+    border-radius: var(--r-lg);
+    padding: var(--sp-8);
+    box-shadow: var(--sh-2);
+  }
+  .auth-form > h2 { font-size: 24px; letter-spacing: -.3px; }
+  .auth-form > .sub { margin-top: var(--sp-2); margin-bottom: var(--sp-6); color: var(--text-2); font-size: var(--fs-small); }
+  .auth-foot {
+    margin-top: var(--sp-5);
+    padding-top: var(--sp-5);
+    border-top: 1px solid var(--line-soft);
+    text-align: center;
+    font-size: var(--fs-small);
+    color: var(--text-2);
+  }
+  .auth-alt { margin-top: var(--sp-3); text-align: center; }
+
+  /* 设计稿导览条：仅评审用，不进 Vue 实现 */
+  .mock-nav {
+    position: fixed;
+    right: var(--sp-4);
+    bottom: var(--sp-4);
+    z-index: 99;
+    display: flex;
+    gap: var(--sp-1);
+    padding: var(--sp-1);
+    background: var(--surface-raise);
+    border: 1px solid var(--line);
+    border-radius: var(--r-pill);
+    box-shadow: var(--sh-2);
+  }
+  .mock-nav a {
+    padding: 5px 12px;
+    border-radius: var(--r-pill);
+    font-size: var(--fs-cap);
+    color: var(--text-2);
+    white-space: nowrap;
+  }
+  .mock-nav a:hover { background: var(--fill); color: var(--ink); text-decoration: none; }
+  .mock-nav a.cur { background: var(--ink); color: #FAF9F5; }
+
+  @media (max-width: 960px) {
+    .auth { grid-template-columns: 1fr; }
+    .auth-aside { display: none; }
+    .auth-main { padding: var(--sp-5); }
+    .auth-form { box-shadow: none; border-color: transparent; padding: var(--sp-5) 0; background: transparent; }
+    .mock-nav { left: var(--sp-4); justify-content: center; overflow-x: auto; }
+  }
+</style>
+</head>
+<body>
+
+<div class="auth">
+  <!-- ============ 左：品牌区 ============ -->
+  <aside class="auth-aside">
+    <div class="brand">
+      <span class="brand-mark auth-mark"><svg class="ico"><use href="#i-spark"/></svg></span>
+      <span class="brand-text">
+        <span class="brand-name lg">专升本智能备考</span>
+        <span class="brand-sub">ZSB EXAM SYSTEM</span>
+      </span>
+    </div>
+
+    <div class="auth-lead">
+      <h1>把每一道错题，<br>都变成下一次的<em>分数</em>。</h1>
+      <p>刷题练习 → 错题诊断 → 计划执行，一条闭环陪你走到考场。</p>
+    </div>
+
+    <div class="auth-feats">
+      <div class="auth-feat">
+        <span class="dot"><svg class="ico"><use href="#i-book"/></svg></span>
+        <span><b>四科题库分组刷</b><span>大学英语 · 高等数学 · 计算机基础 · 管理学，按题型与难度自由组合</span></span>
+      </div>
+      <div class="auth-feat">
+        <span class="dot"><svg class="ico"><use href="#i-spark"/></svg></span>
+        <span><b>AI 逐题讲错因</b><span>错因分析 / 解题思路 / 知识点提示，带缓存与版本失效，不重复烧算力</span></span>
+      </div>
+      <div class="auth-feat">
+        <span class="dot"><svg class="ico"><use href="#i-plan"/></svg></span>
+        <span><b>计划按考试日倒排</b><span>填入考试日期与每日时长，自动生成到考前的任务表并支持打卡</span></span>
+      </div>
+    </div>
+
+    <p class="auth-legal">登录即表示同意《用户协议》与《隐私政策》。</p>
+
+    <svg class="aside-glow ico"><use href="#i-spark"/></svg>
+  </aside>
+
+  <!-- ============ 右：登录表单 ============ -->
+  <main class="auth-main">
+    <form class="auth-form" onsubmit="return false">
+      <h2>欢迎回来</h2>
+      <p class="sub">登录后继续今天的学习计划。</p>
+
+      <div class="field">
+        <label class="field-label" for="u">用户名<span class="req">*</span></label>
+        <input class="input" id="u" type="text" placeholder="请输入用户名" autocomplete="username" value="lin_tongxue">
+      </div>
+
+      <div class="field">
+        <label class="field-label" for="p">密码<span class="req">*</span></label>
+        <div class="input-wrap">
+          <input class="input" id="p" type="password" placeholder="请输入密码" autocomplete="current-password" value="password123">
+          <button class="eye" type="button" data-eye="p" aria-label="显示密码">
+            <svg class="ico ico-sm"><use href="#i-eye"/></svg>
+          </button>
+        </div>
+        <p class="field-hint">6–20 位，建议字母与数字组合。</p>
+      </div>
+
+      <button class="btn btn-primary btn-lg btn-block" type="submit">登 录</button>
+
+      <div class="auth-foot">
+        还没有账号？<a href="#">立即注册</a>
+      </div>
+      <div class="auth-alt">
+        <a class="btn btn-ghost btn-sm" href="index.html">以游客身份看看界面 →</a>
+      </div>
+    </form>
+  </main>
+</div>
+
+<!-- 设计稿导览（评审用） -->
+<nav class="mock-nav" aria-label="设计稿页面切换">
+  <a class="cur" href="login.html">登录</a>
+  <a href="index.html">今日计划</a>
+  <a href="practice.html">智能题库</a>
+  <a href="wrong-book.html">错题本</a>
+</nav>
+
+<script src="mock.js"></script>
+</body>
+</html>

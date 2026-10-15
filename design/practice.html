@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>智能题库 · 专升本智能备考系统</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="base.css">
+<style>
+  /* ===== 页面私有样式（对应 Practice.vue 的 <style scoped>） ===== */
+  .filter-card { padding: var(--sp-5) var(--sp-6); }
+  .filter-row + .filter-row {
+    margin-top: var(--sp-4);
+    padding-top: var(--sp-4);
+    border-top: 1px solid var(--line-soft);
+  }
+  .filter-row > .filter-lbl {
+    display: block;
+    margin-bottom: var(--sp-3);
+    font-size: var(--fs-cap);
+    letter-spacing: .6px;
+    color: var(--text-3);
+  }
+
+  .type-foot {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-3);
+    margin-top: var(--sp-2);
+    font-size: var(--fs-cap);
+    color: var(--text-2);
+  }
+
+  .session-bar { margin: 0 0 var(--sp-5); }
+  .session-bar .between { margin-bottom: var(--sp-2); font-size: var(--fs-small); color: var(--text-2); }
+
+  /* 设计稿状态标注：仅评审用，不进 Vue 实现 */
+  .state-note {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-3);
+    margin: var(--sp-10) 0 var(--sp-4);
+    font-size: var(--fs-cap);
+    letter-spacing: .6px;
+    color: var(--text-3);
+  }
+  .state-note::after { content: ''; flex: 1; height: 1px; background: var(--line); }
+  .state-note b {
+    padding: 2px 10px;
+    border-radius: var(--r-pill);
+    background: var(--fill-strong);
+    color: var(--text-2);
+    font-weight: 600;
+    letter-spacing: 0;
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ==================== 侧边栏 ==================== -->
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <span class="brand-mark"><svg class="ico"><use href="#i-spark"/></svg></span>
+      <span class="brand-text">
+        <span class="brand-name">专升本智能备考</span>
+        <span class="brand-sub">ZSB EXAM SYSTEM</span>
+      </span>
+    </div>
+
+    <div class="side-action">
+      <a class="btn btn-ink btn-block" href="practice.html">
+        <svg class="ico"><use href="#i-book"/></svg> 开始刷题
+      </a>
+    </div>
+
+    <nav class="nav">
+      <div class="nav-group">
+        <div class="nav-label">学习闭环</div>
+        <a class="nav-item" data-page="index.html" href="index.html"><svg class="ico"><use href="#i-plan"/></svg>今日计划</a>
+        <a class="nav-item active" data-page="practice.html" href="practice.html"><svg class="ico"><use href="#i-book"/></svg>智能题库</a>
+        <a class="nav-item" data-page="exam.html" href="#"><svg class="ico"><use href="#i-exam"/></svg>模拟考场</a>
+      </div>
+
+      <div class="nav-group">
+        <div class="nav-label">复盘提升</div>
+        <a class="nav-item" data-page="wrong-book.html" href="wrong-book.html"><svg class="ico"><use href="#i-mark"/></svg>错题本<span class="nav-badge">23</span></a>
+        <a class="nav-item" data-page="report.html" href="#"><svg class="ico"><use href="#i-chart"/></svg>学情报告</a>
+      </div>
+
+      <div class="nav-group">
+        <div class="nav-label">账号</div>
+        <a class="nav-item" data-page="profile.html" href="#"><svg class="ico"><use href="#i-user"/></svg>个人中心</a>
+        <a class="nav-item" data-page="admin.html" href="#"><svg class="ico"><use href="#i-shield"/></svg>后台管理</a>
+        <a class="nav-item" data-page="login.html" href="login.html"><svg class="ico"><use href="#i-arrow-r"/></svg>退出登录</a>
+      </div>
+    </nav>
+
+    <div class="side-foot">
+      <div class="countdown">
+        <span class="countdown-num">152</span>
+        <span class="countdown-txt">
+          <b>天后考试</b>
+          <span>2027-03-14 · 已备考 62 天</span>
+        </span>
+      </div>
+      <button class="user-chip" type="button">
+        <span class="avatar">林</span>
+        <span class="user-meta">
+          <span class="user-name">林同学</span>
+          <span class="user-role">考生 · 正确率 78%</span>
+        </span>
+        <svg class="ico ico-sm chev"><use href="#i-chev-d"/></svg>
+      </button>
+    </div>
+  </aside>
+  <div class="scrim" id="sideScrim" hidden></div>
+
+  <!-- ==================== 主内容 ==================== -->
+  <div class="main">
+    <div class="content">
+
+      <header class="page-head">
+        <button class="burger" type="button" data-burger aria-label="打开菜单"><svg class="ico"><use href="#i-menu"/></svg></button>
+        <div class="head-txt">
+          <div class="eyebrow">题库 · 共 370 题</div>
+          <h1>智能题库</h1>
+          <p class="sub">按科目与题型筛选，系统会根据你的正确率推荐下一组练习。</p>
+        </div>
+        <div class="actions">
+          <a class="btn btn-primary" href="#"><svg class="ico"><use href="#i-layers"/></svg>智能组卷</a>
+        </div>
+      </header>
+
+      <!-- ---------- 筛选 ---------- -->
+      <section class="card filter-card mb24">
+        <div class="filter-row">
+          <span class="filter-lbl">科目</span>
+          <div class="pills" data-exclusive>
+            <button class="pill active" type="button">全部科目<span class="pill-num">370</span></button>
+            <button class="pill" type="button">大学英语<span class="pill-num">128</span></button>
+            <button class="pill" type="button">高等数学<span class="pill-num">96</span></button>
+            <button class="pill" type="button">计算机基础<span class="pill-num">84</span></button>
+            <button class="pill" type="button">管理学<span class="pill-num">62</span></button>
+          </div>
+        </div>
+        <div class="filter-row">
+          <span class="filter-lbl">题型</span>
+          <div class="pills" data-exclusive>
+            <button class="pill active" type="button">全部题型</button>
+            <button class="pill" type="button">单选题<span class="pill-num">226</span></button>
+            <button class="pill" type="button">多选题<span class="pill-num">56</span></button>
+            <button class="pill" type="button">判断题<span class="pill-num">88</span></button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================================
+           状态 A · 未开始练习（默认落地态）
+           ============================================================ -->
+      <div class="state-note"><b>状态 A</b> 未开始练习 · 默认落地态</div>
+
+      <div class="grid-2">
+        <section class="card">
+          <div class="card-head">
+            <h2><svg class="ico"><use href="#i-chart"/></svg>题型进度</h2>
+            <div class="card-sub">全部科目 · 未掌握 <b>23</b> 道</div>
+          </div>
+
+          <div class="rows">
+            <div class="row static">
+              <div class="row-main">
+                <div class="between mb8">
+                  <span class="row-ttl">单选题</span>
+                  <span class="hint tnum">共 226 题</span>
+                </div>
+                <div class="progress"><div class="fill sage" style="width: 81%"></div></div>
+                <div class="type-foot">
+                  <span>掌握度 <b class="tnum">81%</b></span>
+                  <span class="tag tag-brick">未掌握 7</span>
+                </div>
+              </div>
+              <div class="row-aside">
+                <button class="btn btn-outline btn-sm" type="button">继续刷题</button>
+              </div>
+            </div>
+
+            <div class="row static">
+              <div class="row-main">
+                <div class="between mb8">
+                  <span class="row-ttl">多选题</span>
+                  <span class="hint tnum">共 56 题</span>
+                </div>
+                <div class="progress"><div class="fill amber" style="width: 63%"></div></div>
+                <div class="type-foot">
+                  <span>掌握度 <b class="tnum">63%</b></span>
+                  <span class="tag tag-brick">未掌握 12</span>
+                </div>
+              </div>
+              <div class="row-aside">
+                <button class="btn btn-outline btn-sm" type="button">继续刷题</button>
+              </div>
+            </div>
+
+            <div class="row static">
+              <div class="row-main">
+                <div class="between mb8">
+                  <span class="row-ttl">判断题</span>
+                  <span class="hint tnum">共 88 题</span>
+                </div>
+                <div class="progress"><div class="fill sage" style="width: 89%"></div></div>
+                <div class="type-foot">
+                  <span>掌握度 <b class="tnum">89%</b></span>
+                  <span class="tag tag-brick">未掌握 4</span>
+                </div>
+              </div>
+              <div class="row-aside">
+                <button class="btn btn-outline btn-sm" type="button">继续刷题</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="note mt16">
+            <svg class="ico ico-sm"><use href="#i-alert"/></svg>
+            <span>多选题掌握度最低（63%），且贡献了 12 道未掌握错题，建议本轮优先攻多选。</span>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="card-head">
+            <h2><svg class="ico"><use href="#i-spark"/></svg>推荐练习</h2>
+            <div class="card-sub">每轮 10 题</div>
+          </div>
+
+          <div class="rows">
+            <div class="row static">
+              <span class="row-main">
+                <span class="row-ttl">错题回炉</span>
+                <span class="row-sub">
+                  <span class="tag tag-brick">23 道未掌握</span>
+                  <span class="hint">优先重练高频错题</span>
+                </span>
+              </span>
+              <span class="row-aside"><a class="btn btn-primary btn-sm" href="wrong-book.html">开始</a></span>
+            </div>
+
+            <div class="row static">
+              <span class="row-main">
+                <span class="row-ttl">简单练习</span>
+                <span class="row-sub">
+                  <span class="tag tag-sage">难度 1</span>
+                  <span class="hint">约 10 题 · 约 15 分钟</span>
+                </span>
+              </span>
+              <span class="row-aside"><button class="btn btn-outline btn-sm" type="button">开始</button></span>
+            </div>
+
+            <div class="row static">
+              <span class="row-main">
+                <span class="row-ttl">中等练习</span>
+                <span class="row-sub">
+                  <span class="tag tag-amber">难度 2</span>
+                  <span class="hint">约 10 题 · 约 20 分钟</span>
+                </span>
+              </span>
+              <span class="row-aside"><button class="btn btn-outline btn-sm" type="button">开始</button></span>
+            </div>
+
+            <div class="row static">
+              <span class="row-main">
+                <span class="row-ttl">困难练习</span>
+                <span class="row-sub">
+                  <span class="tag tag-brick">难度 3</span>
+                  <span class="hint">约 10 题 · 约 25 分钟</span>
+                </span>
+              </span>
+              <span class="row-aside"><button class="btn btn-outline btn-sm" type="button">开始</button></span>
+            </div>
+
+            <div class="row static">
+              <span class="row-main">
+                <span class="row-ttl">混合自测</span>
+                <span class="row-sub">
+                  <span class="tag tag-outline">随机抽题</span>
+                  <span class="hint">跨题型混合 10 题</span>
+                </span>
+              </span>
+              <span class="row-aside"><button class="btn btn-outline btn-sm" type="button">开始</button></span>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- ============================================================
+           状态 B · 练习进行中（替换状态 A 的两栏）
+           ============================================================ -->
+      <div class="state-note"><b>状态 B</b> 练习进行中 · 点击「开始」后替换状态 A</div>
+
+      <section class="card">
+        <div class="card-head">
+          <h2><svg class="ico"><use href="#i-book"/></svg>高等数学 · 多选题</h2>
+          <div class="card-sub">本轮 <b>10</b> 题 · 已答对 <b>2</b> 题 · <a class="btn-link btn-sm" href="#">退出练习</a></div>
+        </div>
+
+        <div class="session-bar">
+          <div class="between">
+            <span>进度</span>
+            <span class="tnum">4 / 10</span>
+          </div>
+          <div class="progress"><div class="fill" style="width: 40%"></div></div>
+        </div>
+
+        <div class="q-meta">
+          <span class="tag tag-coral">多选</span>
+          <span class="tag tag-brick">难度 3 · 困难</span>
+          <span class="tag tag-outline">高等数学</span>
+        </div>
+
+        <div data-q-form>
+          <p class="q-stem">设 f(x) = x² − 4x + 3，下列关于 f(x) 的说法中，正确的有（　　）</p>
+
+          <div class="opts locked" data-opts="multi" role="group" aria-label="题目选项">
+            <label class="opt right locked">
+              <input type="checkbox" name="q4" value="A" checked disabled>
+              <span class="opt-key">A</span>
+              <span class="opt-txt">图像开口向上</span>
+              <span class="opt-flag"><svg class="ico ico-sm"><use href="#i-check"/></svg></span>
+            </label>
+            <label class="opt right locked">
+              <input type="checkbox" name="q4" value="B" checked disabled>
+              <span class="opt-key">B</span>
+              <span class="opt-txt">对称轴为直线 x = 2</span>
+              <span class="opt-flag"><svg class="ico ico-sm"><use href="#i-check"/></svg></span>
+            </label>
+            <label class="opt right locked">
+              <input type="checkbox" name="q4" value="C" disabled>
+              <span class="opt-key">C</span>
+              <span class="opt-txt">最小值为 −1</span>
+              <span class="opt-flag"><svg class="ico ico-sm"><use href="#i-check"/></svg></span>
+            </label>
+            <label class="opt wrong locked">
+              <input type="checkbox" name="q4" value="D" checked disabled>
+              <span class="opt-key">D</span>
+              <span class="opt-txt">在区间 (2, +∞) 上单调递减</span>
+              <span class="opt-flag"><svg class="ico ico-sm"><use href="#i-x"/></svg></span>
+            </label>
+          </div>
+
+          <div class="verdict bad">
+            <span class="verdict-ico"><svg class="ico"><use href="#i-x"/></svg></span>
+            <b>回答错误</b>
+            <span class="verdict-sub">你的答案 ABD · 正确答案 ABC</span>
+          </div>
+
+          <div class="analysis">
+            <div class="analysis-ttl">题目解析</div>
+            <div class="analysis-txt">配方得 f(x) = (x − 2)² − 1。
+· 二次项系数 a = 1 &gt; 0，图像开口向上，A 正确；
+· 对称轴 x = −b / 2a = 4 / 2 = 2，B 正确；
+· 顶点为 (2, −1)，故最小值为 −1，C 正确；
+· 开口向上时，对称轴右侧单调递增，因此 f(x) 在 (2, +∞) 上单调递增，D 错误。</div>
+          </div>
+        </div>
+
+        <div class="q-actions">
+          <div class="q-nav">
+            <button class="q-dot done" type="button" title="第 1 题 答对">1</button>
+            <button class="q-dot miss" type="button" title="第 2 题 答错">2</button>
+            <button class="q-dot done" type="button" title="第 3 题 答对">3</button>
+            <button class="q-dot cur" type="button" title="第 4 题 当前">4</button>
+            <button class="q-dot" type="button">5</button>
+            <button class="q-dot" type="button">6</button>
+            <button class="q-dot" type="button">7</button>
+            <button class="q-dot" type="button">8</button>
+            <button class="q-dot" type="button">9</button>
+            <button class="q-dot" type="button">10</button>
+          </div>
+          <div class="btn-row">
+            <button class="btn btn-outline" type="button"><svg class="ico"><use href="#i-chev-l"/></svg>上一题</button>
+            <button class="btn btn-primary" type="button">下一题<svg class="ico"><use href="#i-chev-r"/></svg></button>
+          </div>
+        </div>
+      </section>
+
+      <div class="note mt16">
+        <svg class="ico ico-sm"><use href="#i-spark"/></svg>
+        <span>答错的题会自动写入错题本；本轮全部作答后，卡片底部会出现「本轮完成：答对 N / 10 题」的结果区，并提供「再来一组」与「返回题库」。</span>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="mock.js"></script>
+</body>
+</html>

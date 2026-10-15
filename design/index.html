@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>今日计划 · 专升本智能备考系统</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="base.css">
+<style>
+  /* ===== 页面私有样式（对应 Home.vue 的 <style scoped>） ===== */
+  .bars-legend {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-4);
+    margin-top: var(--sp-4);
+    padding-top: var(--sp-3);
+    border-top: 1px solid var(--line-soft);
+    font-size: var(--fs-cap);
+    color: var(--text-3);
+  }
+  .bars-legend i {
+    display: inline-block;
+    width: 10px; height: 10px;
+    border-radius: 3px;
+    margin-right: 5px;
+    vertical-align: -1px;
+  }
+  .bars-legend .l-done { background: var(--coral); }
+  .bars-legend .l-rest { background: var(--coral-soft); }
+
+  .week-sum {
+    display: flex;
+    align-items: baseline;
+    gap: var(--sp-2);
+    margin-bottom: var(--sp-4);
+  }
+  .week-sum b {
+    font-family: var(--serif);
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+  }
+  .week-sum span { font-size: var(--fs-cap); color: var(--text-3); }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ==================== 侧边栏 ==================== -->
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <span class="brand-mark"><svg class="ico"><use href="#i-spark"/></svg></span>
+      <span class="brand-text">
+        <span class="brand-name">专升本智能备考</span>
+        <span class="brand-sub">ZSB EXAM SYSTEM</span>
+      </span>
+    </div>
+
+    <div class="side-action">
+      <a class="btn btn-ink btn-block" href="practice.html">
+        <svg class="ico"><use href="#i-book"/></svg> 开始刷题
+      </a>
+    </div>
+
+    <nav class="nav">
+      <div class="nav-group">
+        <div class="nav-label">学习闭环</div>
+        <a class="nav-item active" data-page="index.html" href="index.html"><svg class="ico"><use href="#i-plan"/></svg>今日计划</a>
+        <a class="nav-item" data-page="practice.html" href="practice.html"><svg class="ico"><use href="#i-book"/></svg>智能题库</a>
+        <a class="nav-item" data-page="exam.html" href="#"><svg class="ico"><use href="#i-exam"/></svg>模拟考场</a>
+      </div>
+
+      <div class="nav-group">
+        <div class="nav-label">复盘提升</div>
+        <a class="nav-item" data-page="wrong-book.html" href="wrong-book.html"><svg class="ico"><use href="#i-mark"/></svg>错题本<span class="nav-badge">23</span></a>
+        <a class="nav-item" data-page="report.html" href="#"><svg class="ico"><use href="#i-chart"/></svg>学情报告</a>
+      </div>
+
+      <div class="nav-group">
+        <div class="nav-label">账号</div>
+        <a class="nav-item" data-page="profile.html" href="#"><svg class="ico"><use href="#i-user"/></svg>个人中心</a>
+        <a class="nav-item" data-page="admin.html" href="#"><svg class="ico"><use href="#i-shield"/></svg>后台管理</a>
+        <a class="nav-item" data-page="login.html" href="login.html"><svg class="ico"><use href="#i-arrow-r"/></svg>退出登录</a>
+      </div>
+    </nav>
+
+    <div class="side-foot">
+      <div class="countdown">
+        <span class="countdown-num">152</span>
+        <span class="countdown-txt">
+          <b>天后考试</b>
+          <span>2027-03-14 · 已备考 62 天</span>
+        </span>
+      </div>
+      <button class="user-chip" type="button">
+        <span class="avatar">林</span>
+        <span class="user-meta">
+          <span class="user-name">林同学</span>
+          <span class="user-role">考生 · 正确率 78%</span>
+        </span>
+        <svg class="ico ico-sm chev"><use href="#i-chev-d"/></svg>
+      </button>
+    </div>
+  </aside>
+  <div class="scrim" id="sideScrim" hidden></div>
+
+  <!-- ==================== 主内容 ==================== -->
+  <div class="main">
+    <div class="content">
+
+      <header class="page-head">
+        <button class="burger" type="button" data-burger aria-label="打开菜单"><svg class="ico"><use href="#i-menu"/></svg></button>
+        <div class="head-txt">
+          <div class="eyebrow">2026 年 10 月 13 日 · 周二</div>
+          <h1>早上好，林同学</h1>
+          <p class="sub">今天安排了 4 项任务，已完成 2 项。高等数学掌握度偏低，建议优先安排。</p>
+        </div>
+        <div class="actions">
+          <a class="btn btn-outline" href="#"><svg class="ico"><use href="#i-doc"/></svg>查看学情报告</a>
+          <a class="btn btn-primary" href="practice.html"><svg class="ico"><use href="#i-layers"/></svg>智能组卷</a>
+        </div>
+      </header>
+
+      <!-- ---------- 统计卡 ---------- -->
+      <div class="stat-grid mb24">
+        <div class="stat" style="--accent: var(--coral)">
+          <div class="stat-label"><svg class="ico"><use href="#i-clock"/></svg>距离考试</div>
+          <div class="stat-value">152<span class="unit">天</span></div>
+          <div class="stat-foot">考试日 2027-03-14</div>
+        </div>
+        <div class="stat" style="--accent: var(--slate)">
+          <div class="stat-label"><svg class="ico"><use href="#i-plan"/></svg>今日完成</div>
+          <div class="stat-value">2<span class="unit">/ 4 项</span></div>
+          <div class="stat-foot">进度 50%</div>
+        </div>
+        <div class="stat" style="--accent: var(--sage)">
+          <div class="stat-label"><svg class="ico"><use href="#i-layers"/></svg>累计做题</div>
+          <div class="stat-value">486<span class="unit">道</span></div>
+          <div class="stat-foot good">正确率 78%</div>
+        </div>
+        <div class="stat" style="--accent: var(--brick)">
+          <div class="stat-label"><svg class="ico"><use href="#i-mark"/></svg>未掌握错题</div>
+          <div class="stat-value">23<span class="unit">道</span></div>
+          <div class="stat-foot warn">建议今日回炉 3 道</div>
+        </div>
+      </div>
+
+      <!-- ---------- AI 建议 ---------- -->
+      <div class="ai-bar mb24">
+        <span class="ai-mark"><svg class="ico"><use href="#i-spark"/></svg></span>
+        <div class="ai-body">
+          <div class="ai-title">
+            AI 建议
+            <span class="tag tag-outline">规则引擎（模拟）</span>
+          </div>
+          <p class="ai-text">你还有 23 道未掌握的错题，其中高等数学占 11 道，建议优先回炉；当前计划完成 46/120，今日任务记得打卡；近期正确率 78%，状态不错，可以适当提高难题占比。</p>
+        </div>
+        <div class="ai-actions">
+          <a class="btn btn-outline btn-sm" href="#">重新分析</a>
+          <a class="btn btn-primary btn-sm" href="wrong-book.html">查看错题</a>
+        </div>
+      </div>
+
+      <!-- ---------- 今日任务 + 未来七日 ---------- -->
+      <div class="grid-2 mb16">
+        <section class="card">
+          <div class="card-head">
+            <h2><svg class="ico"><use href="#i-plan"/></svg>今日学习计划</h2>
+            <div class="card-sub">共 <b>4</b> 项 · <a class="btn-link btn-sm" href="#">管理计划</a></div>
+          </div>
+
+          <div class="rows">
+            <button class="row done" type="button" data-task>
+              <span class="task-check"><svg class="ico"><use href="#i-check"/></svg></span>
+              <span class="row-time">08:00</span>
+              <span class="row-main"><span class="row-ttl">大学英语 · 完形填空专项 20 题</span></span>
+              <span class="row-aside"><span class="tag tag-sage" data-task-badge>已完成</span></span>
+            </button>
+            <button class="row done" type="button" data-task>
+              <span class="task-check"><svg class="ico"><use href="#i-check"/></svg></span>
+              <span class="row-time">09:30</span>
+              <span class="row-main"><span class="row-ttl">高等数学 · 极限与连续 概念梳理</span></span>
+              <span class="row-aside"><span class="tag tag-sage" data-task-badge>已完成</span></span>
+            </button>
+            <button class="row" type="button" data-task>
+              <span class="task-check"><svg class="ico"><use href="#i-check"/></svg></span>
+              <span class="row-time">14:00</span>
+              <span class="row-main"><span class="row-ttl">计算机基础 · 错题回炉 8 道</span></span>
+              <span class="row-aside"><span class="tag tag-coral" data-task-badge>打卡</span></span>
+            </button>
+            <button class="row" type="button" data-task>
+              <span class="task-check"><svg class="ico"><use href="#i-check"/></svg></span>
+              <span class="row-time">20:00</span>
+              <span class="row-main"><span class="row-ttl">管理学 · 单选题 15 题</span></span>
+              <span class="row-aside"><span class="tag tag-coral" data-task-badge>打卡</span></span>
+            </button>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="card-head">
+            <h2><svg class="ico"><use href="#i-chart"/></svg>未来七日任务</h2>
+            <div class="card-sub">按计划倒排</div>
+          </div>
+
+          <div class="week-sum"><b>38</b><span>项待办 · 已打卡 2 项</span></div>
+
+          <div class="bars">
+            <div class="bar-col today">
+              <span class="bar-val">2/4</span>
+              <span class="bar-stack" style="height: 50%"><i class="bar-done" style="flex: 2"></i><i class="bar-rest" style="flex: 2"></i></span>
+              <span class="bar-lbl">今天</span>
+            </div>
+            <div class="bar-col">
+              <span class="bar-val">0/5</span>
+              <span class="bar-stack" style="height: 62%"><i class="bar-done" style="flex: 0"></i><i class="bar-rest" style="flex: 5"></i></span>
+              <span class="bar-lbl">周三</span>
+            </div>
+            <div class="bar-col">
+              <span class="bar-val">0/4</span>
+              <span class="bar-stack" style="height: 50%"><i class="bar-done" style="flex: 0"></i><i class="bar-rest" style="flex: 4"></i></span>
+              <span class="bar-lbl">周四</span>
+            </div>
+            <div class="bar-col">
+              <span class="bar-val">0/6</span>
+              <span class="bar-stack" style="height: 75%"><i class="bar-done" style="flex: 0"></i><i class="bar-rest" style="flex: 6"></i></span>
+              <span class="bar-lbl">周五</span>
+            </div>
+            <div class="bar-col">
+              <span class="bar-val">0/5</span>
+              <span class="bar-stack" style="height: 62%"><i class="bar-done" style="flex: 0"></i><i class="bar-rest" style="flex: 5"></i></span>
+              <span class="bar-lbl">周六</span>
+            </div>
+            <div class="bar-col">
+              <span class="bar-val">0/8</span>
+              <span class="bar-stack" style="height: 100%"><i class="bar-done" style="flex: 0"></i><i class="bar-rest" style="flex: 8"></i></span>
+              <span class="bar-lbl">周日</span>
+            </div>
+            <div class="bar-col">
+              <span class="bar-val">0/6</span>
+              <span class="bar-stack" style="height: 75%"><i class="bar-done" style="flex: 0"></i><i class="bar-rest" style="flex: 6"></i></span>
+              <span class="bar-lbl">周一</span>
+            </div>
+          </div>
+
+          <div class="bars-legend">
+            <span><i class="l-done"></i>已完成</span>
+            <span><i class="l-rest"></i>待完成</span>
+            <span class="faint">加粗为今天</span>
+          </div>
+        </section>
+      </div>
+
+      <!-- ---------- 科目掌握度 + 每日一题 ---------- -->
+      <div class="grid-2">
+        <section class="card">
+          <div class="card-head">
+            <h2><svg class="ico"><use href="#i-target"/></svg>科目掌握度</h2>
+            <div class="card-sub">竖线为目标 <b>85%</b></div>
+          </div>
+
+          <div class="mastery-row">
+            <span class="mastery-name">大学英语</span>
+            <div class="progress"><div class="fill" style="width: 82%"></div><div class="target" style="left: 85%"></div></div>
+            <span class="mastery-val">82%</span>
+          </div>
+          <div class="mastery-row">
+            <span class="mastery-name">高等数学</span>
+            <div class="progress"><div class="fill amber" style="width: 64%"></div><div class="target" style="left: 85%"></div></div>
+            <span class="mastery-val">64%</span>
+          </div>
+          <div class="mastery-row">
+            <span class="mastery-name">计算机基础</span>
+            <div class="progress"><div class="fill sage" style="width: 91%"></div><div class="target" style="left: 85%"></div></div>
+            <span class="mastery-val">91%</span>
+          </div>
+          <div class="mastery-row">
+            <span class="mastery-name">管理学</span>
+            <div class="progress"><div class="fill" style="width: 78%"></div><div class="target" style="left: 85%"></div></div>
+            <span class="mastery-val">78%</span>
+          </div>
+
+          <div class="divider-label">大学英语 · 优先攻克</div>
+          <div class="between mb8">
+            <span class="hint">3 道高频错题尚未掌握</span>
+            <a class="btn btn-soft btn-sm" href="practice.html"><svg class="ico"><use href="#i-target"/></svg>专项练习</a>
+          </div>
+
+          <div class="weak-row">
+            <span class="weak-txt">The committee has ______ a new policy on remote work.</span>
+            <span class="tag tag-brick">错 4 次</span>
+          </div>
+          <div class="weak-row">
+            <span class="weak-txt">Choose the word that best completes the sentence: …</span>
+            <span class="tag tag-brick">错 3 次</span>
+          </div>
+          <div class="weak-row">
+            <span class="weak-txt">Neither the teacher nor the students ______ aware of …</span>
+            <span class="tag tag-brick">错 2 次</span>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="card-head">
+            <h2><svg class="ico"><use href="#i-bulb"/></svg>每日一题</h2>
+            <button class="btn btn-ghost btn-sm" type="button"><svg class="ico"><use href="#i-refresh"/></svg>换一题</button>
+          </div>
+
+          <div class="q-meta">
+            <span class="tag tag-coral">单选</span>
+            <span class="tag tag-amber">难度 2 · 中等</span>
+            <span class="tag tag-outline">大学英语</span>
+          </div>
+
+          <div data-q-form>
+            <p class="q-stem"><span class="blank"></span> the weather was terrible, the football match went on as scheduled.</p>
+
+            <div class="opts" data-opts="single" role="radiogroup" aria-label="题目选项">
+              <label class="opt"><input type="radio" name="daily" value="A"><span class="opt-key">A</span><span class="opt-txt">Although</span></label>
+              <label class="opt"><input type="radio" name="daily" value="B"><span class="opt-key">B</span><span class="opt-txt">Because</span></label>
+              <label class="opt"><input type="radio" name="daily" value="C"><span class="opt-key">C</span><span class="opt-txt">If</span></label>
+              <label class="opt"><input type="radio" name="daily" value="D"><span class="opt-key">D</span><span class="opt-txt">Unless</span></label>
+            </div>
+
+            <div class="mt16">
+              <button class="btn btn-primary btn-block" type="button" data-submit-btn disabled>提交答案</button>
+            </div>
+          </div>
+
+          <div class="note mt16">
+            <svg class="ico ico-sm"><use href="#i-spark"/></svg>
+            <span>提交后立即判分并给出题目解析；若答错会自动收进错题本，可再让 AI 讲解错因。</span>
+          </div>
+        </section>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="mock.js"></script>
+</body>
+</html>

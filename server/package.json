@@ -1,0 +1,22 @@
+{
+  "name": "zsb-exam-server",
+  "version": "1.0.0",
+  "description": "专升本智能备考系统后端（Node.js + Express + MySQL）",
+  "main": "src/app.js",
+  "scripts": {
+    "dev": "node --watch src/app.js",
+    "start": "node src/app.js",
+    "init:admin": "node scripts/init-admin.js",
+    "import:questions": "node scripts/import-questions.js",
+    "ai:test": "node scripts/test-ai.js",
+    "smoke": "node scripts/smoke-test.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "jsonwebtoken": "^9.0.2",
+    "morgan": "^1.10.0",
+    "mysql2": "^3.11.0"
+  }
+}

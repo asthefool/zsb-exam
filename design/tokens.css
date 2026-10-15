@@ -1,0 +1,177 @@
+/* ============================================================
+   专升本智能备考系统 · Claude 风设计 Token
+   ------------------------------------------------------------
+   气质关键词：暖象牙纸感 / 珊瑚陶土强调 / 衬线标题 / 低对比描边 / 克制阴影
+
+   本文件是「唯一事实来源」。确认后整块 :root 直接替换
+   web/src/style.css 顶部的 :root，即可让全站（含 Element Plus）换肤。
+   ============================================================ */
+
+:root {
+  /* ---- 画布层级：由深到浅，靠色差而非描边分层 ---- */
+  --canvas:        #FAF9F5;  /* 页面主底：象牙白 */
+  --canvas-sunken: #F0EEE6;  /* 侧边栏 / 凹陷区：暖米 */
+  --surface:       #FFFEFC;  /* 卡片面 */
+  --surface-raise: #FFFFFF;  /* 浮起面（抽屉、弹层、选中态） */
+  --fill:          #F4F2EA;  /* 输入底 / hover 填充 */
+  --fill-strong:   #EAE7DC;  /* 按压填充 / 进度槽 */
+
+  /* ---- 描边：暖灰，比中性灰更贴纸感 ---- */
+  --line:        #E2DFD4;
+  --line-soft:   #EDEAE1;
+  --line-strong: #D3CFC1;
+
+  /* ---- 文字：暖墨，不用纯黑 ---- */
+  --ink:    #1F1E1B;  /* 标题 / 强调 */
+  --text:   #3D3929;  /* 正文 */
+  --text-2: #6E6A5E;  /* 次要 */
+  --text-3: #9C9889;  /* 辅助 / 占位 */
+
+  /* ---- 品牌：珊瑚陶土（Claude 标志性色） ---- */
+  --coral:        #D97757;
+  --coral-hover:  #C4613F;
+  --coral-active: #A94E30;
+  --coral-soft:   #F6E9E2;  /* 选中/标签底 */
+  --coral-softer: #FBF3EE;  /* 大面积浅色底（AI 条） */
+  --coral-line:   #E8CDBE;
+  --coral-ring:   rgba(217, 119, 87, .14);  /* focus 光环 */
+
+  /* ---- 语义色：统一压饱和度，与珊瑚拉开距离 ---- */
+  --sage:       #4F7A52;  /* 正确 / 成功 / 已掌握 */
+  --sage-soft:  #EBF0E9;
+  --sage-line:  #C9D7C5;
+
+  --brick:      #9E3F34;  /* 错误 / 危险 / 未掌握重点 */
+  --brick-soft: #F6E7E3;
+  --brick-line: #E2C2BA;
+
+  --amber:      #8C6A1F;  /* 待办 / 提醒 / 中等难度 */
+  --amber-soft: #F5EEDC;
+  --amber-line: #E0D0AA;
+
+  --slate:      #4E6A82;  /* 信息 / 图表辅助色 */
+  --slate-soft: #E9EEF2;
+  --slate-line: #C9D6E0;
+
+  --plum:       #7C5A72;  /* 图表辅助色 */
+  --plum-soft:  #F0E9EE;
+
+  /* ---- 字体：中英标题走衬线，正文与 UI 走黑体 ---- */
+  --serif: 'Noto Serif SC', 'Source Han Serif SC', 'Songti SC', 'STSong', 'SimSun', Georgia, 'Times New Roman', serif;
+  --sans:  'Noto Sans SC', 'Source Han Sans SC', 'PingFang SC', 'Microsoft YaHei', system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+  /* ---- 字号阶梯 ---- */
+  --fs-display: 30px;  /* 页面主标题 h1 */
+  --fs-title:   18px;  /* 卡片标题 h2 */
+  --fs-sub:     15px;  /* 小节标题 h3 / 题干 */
+  --fs-body:    14px;  /* 正文 */
+  --fs-small:   13px;  /* 次要说明 */
+  --fs-cap:     12px;  /* 标签 / 脚注 */
+  --fs-stat:    34px;  /* 统计大数字（衬线） */
+
+  /* ---- 圆角 ---- */
+  --r-xs:   6px;
+  --r-sm:   8px;
+  --r-md:   12px;
+  --r-lg:   16px;
+  --r-pill: 999px;
+
+  /* ---- 阴影：三级，全部极轻 ---- */
+  --sh-1: 0 1px 2px rgba(31, 30, 27, .04);
+  --sh-2: 0 1px 2px rgba(31, 30, 27, .04), 0 4px 12px rgba(31, 30, 27, .05);
+  --sh-3: 0 2px 6px rgba(31, 30, 27, .05), 0 16px 40px rgba(31, 30, 27, .10);
+
+  /* ---- 间距基准（4 的倍数） ---- */
+  --sp-1: 4px;  --sp-2: 8px;  --sp-3: 12px; --sp-4: 16px;
+  --sp-5: 20px; --sp-6: 24px; --sp-8: 32px; --sp-10: 40px;
+
+  /* ---- 尺寸 ---- */
+  --sidebar-w:   248px;
+  --content-max: 1080px;
+  --drawer-w:    560px;
+  --ctrl-h:      38px;   /* 输入框 / 默认按钮高度 */
+  --ctrl-h-sm:   32px;
+
+  /* ---- 动效 ---- */
+  --ease: cubic-bezier(.2, .8, .3, 1);
+  --dur: .18s;
+
+  /* ============================================================
+     Element Plus 主题覆盖：确认视觉后，这一段原样并入
+     web/src/style.css 的 :root，即可让 el-* 组件跟着换肤
+     ============================================================ */
+  --el-color-primary:            var(--coral);
+  --el-color-primary-light-3:    #E19A82;
+  --el-color-primary-light-5:    #E9BAA9;
+  --el-color-primary-light-7:    #F1D9D0;
+  --el-color-primary-light-8:    #F6E9E2;
+  --el-color-primary-light-9:    #FBF3EE;
+  --el-color-primary-dark-2:     var(--coral-hover);
+
+  --el-color-success:            var(--sage);
+  --el-color-success-light-3:    #7C9C7E;
+  --el-color-success-light-5:    #A2B8A3;
+  --el-color-success-light-7:    #C7D4C7;
+  --el-color-success-light-8:    #DAE3D9;
+  --el-color-success-light-9:    var(--sage-soft);
+
+  --el-color-warning:            var(--amber);
+  --el-color-warning-light-3:    #AC8A54;
+  --el-color-warning-light-5:    #C3A97C;
+  --el-color-warning-light-7:    #D9C8A4;
+  --el-color-warning-light-8:    #E7DCC0;
+  --el-color-warning-light-9:    var(--amber-soft);
+
+  --el-color-danger:             var(--brick);
+  --el-color-error:              var(--brick);
+  --el-color-danger-light-3:     #B5706A;
+  --el-color-danger-light-5:     #C99791;
+  --el-color-danger-light-7:     #DCBEB9;
+  --el-color-danger-light-8:     #E8D2CE;
+  --el-color-danger-light-9:     var(--brick-soft);
+
+  --el-color-info:               var(--text-2);
+  --el-color-info-light-5:       #A7A396;
+  --el-color-info-light-7:       #C6C3B8;
+  --el-color-info-light-8:       #D9D6CC;
+  --el-color-info-light-9:       var(--fill);
+
+  --el-text-color-primary:       var(--ink);
+  --el-text-color-regular:       var(--text);
+  --el-text-color-secondary:     var(--text-2);
+  --el-text-color-placeholder:   var(--text-3);
+  --el-text-color-disabled:      var(--text-3);
+
+  --el-border-color:             var(--line);
+  --el-border-color-light:       var(--line-soft);
+  --el-border-color-lighter:     var(--line-soft);
+  --el-border-color-extra-light: var(--line-soft);
+  --el-border-color-dark:        var(--line-strong);
+  --el-border-color-darker:      var(--line-strong);
+
+  --el-fill-color:               var(--fill);
+  --el-fill-color-light:         var(--fill);
+  --el-fill-color-lighter:       var(--canvas);
+  --el-fill-color-blank:         var(--surface);
+
+  --el-bg-color:                 var(--surface);
+  --el-bg-color-page:            var(--canvas);
+  --el-bg-color-overlay:         var(--surface-raise);
+
+  --el-border-radius-base:       var(--r-sm);
+  --el-border-radius-small:      var(--r-xs);
+  --el-border-radius-round:      var(--r-pill);
+
+  --el-box-shadow:               var(--sh-3);
+  --el-box-shadow-light:         var(--sh-1);
+  --el-box-shadow-lighter:       var(--sh-1);
+  --el-box-shadow-dark:          var(--sh-3);
+
+  --el-font-family:              var(--sans);
+  --el-font-size-base:           var(--fs-body);
+
+  --el-menu-bg-color:            transparent;
+  --el-menu-text-color:          var(--text-2);
+  --el-menu-active-color:        var(--ink);
+  --el-menu-hover-bg-color:      var(--fill);
+}

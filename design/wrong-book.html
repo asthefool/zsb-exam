@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>错题本 · 专升本智能备考系统</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="base.css">
+<style>
+  /* ===== 页面私有样式（对应 WrongBook.vue 的 <style scoped>） ===== */
+
+  /* 历史作答轨迹 */
+  .history { display: flex; align-items: center; gap: var(--sp-3); flex-wrap: wrap; }
+  .history-item {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--sp-2);
+    padding: 3px 10px;
+    border-radius: var(--r-pill);
+    border: 1px solid var(--line);
+    background: var(--surface);
+    font-size: var(--fs-cap);
+    color: var(--text-2);
+    font-variant-numeric: tabular-nums;
+  }
+  .history-item .ico { width: 11px; height: 11px; }
+  .history-item.miss { border-color: var(--brick-line); background: var(--brick-soft); color: var(--brick); }
+  .history-item.hit  { border-color: var(--sage-line);  background: var(--sage-soft);  color: var(--sage); }
+
+  /* 抽屉里的答案对照 */
+  .answer-diff { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-3); }
+  .answer-cell {
+    padding: var(--sp-3) var(--sp-4);
+    border-radius: var(--r-sm);
+    border: 1px solid var(--line-soft);
+    background: var(--fill);
+  }
+  .answer-cell span { display: block; font-size: var(--fs-cap); color: var(--text-3); margin-bottom: 2px; }
+  .answer-cell b { font-family: var(--serif); font-size: 18px; font-weight: 600; color: var(--ink); }
+  .answer-cell.mine { border-color: var(--brick-line); background: var(--brick-soft); }
+  .answer-cell.mine b { color: var(--brick); }
+  .answer-cell.right { border-color: var(--sage-line); background: var(--sage-soft); }
+  .answer-cell.right b { color: var(--sage); }
+
+  @media (max-width: 640px) {
+    .answer-diff { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ==================== 侧边栏 ==================== -->
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <span class="brand-mark"><svg class="ico"><use href="#i-spark"/></svg></span>
+      <span class="brand-text">
+        <span class="brand-name">专升本智能备考</span>
+        <span class="brand-sub">ZSB EXAM SYSTEM</span>
+      </span>
+    </div>
+
+    <div class="side-action">
+      <a class="btn btn-ink btn-block" href="practice.html">
+        <svg class="ico"><use href="#i-book"/></svg> 开始刷题
+      </a>
+    </div>
+
+    <nav class="nav">
+      <div class="nav-group">
+        <div class="nav-label">学习闭环</div>
+        <a class="nav-item" data-page="index.html" href="index.html"><svg class="ico"><use href="#i-plan"/></svg>今日计划</a>
+        <a class="nav-item" data-page="practice.html" href="practice.html"><svg class="ico"><use href="#i-book"/></svg>智能题库</a>
+        <a class="nav-item" data-page="exam.html" href="#"><svg class="ico"><use href="#i-exam"/></svg>模拟考场</a>
+      </div>
+
+      <div class="nav-group">
+        <div class="nav-label">复盘提升</div>
+        <a class="nav-item active" data-page="wrong-book.html" href="wrong-book.html"><svg class="ico"><use href="#i-mark"/></svg>错题本<span class="nav-badge">23</span></a>
+        <a class="nav-item" data-page="report.html" href="#"><svg class="ico"><use href="#i-chart"/></svg>学情报告</a>
+      </div>
+
+      <div class="nav-group">
+        <div class="nav-label">账号</div>
+        <a class="nav-item" data-page="profile.html" href="#"><svg class="ico"><use href="#i-user"/></svg>个人中心</a>
+        <a class="nav-item" data-page="admin.html" href="#"><svg class="ico"><use href="#i-shield"/></svg>后台管理</a>
+        <a class="nav-item" data-page="login.html" href="login.html"><svg class="ico"><use href="#i-arrow-r"/></svg>退出登录</a>
+      </div>
+    </nav>
+
+    <div class="side-foot">
+      <div class="countdown">
+        <span class="countdown-num">152</span>
+        <span class="countdown-txt">
+          <b>天后考试</b>
+          <span>2027-03-14 · 已备考 62 天</span>
+        </span>
+      </div>
+      <button class="user-chip" type="button">
+        <span class="avatar">林</span>
+        <span class="user-meta">
+          <span class="user-name">林同学</span>
+          <span class="user-role">考生 · 正确率 78%</span>
+        </span>
+        <svg class="ico ico-sm chev"><use href="#i-chev-d"/></svg>
+      </button>
+    </div>
+  </aside>
+  <div class="scrim" id="sideScrim" hidden></div>
+
+  <!-- ==================== 主内容 ==================== -->
+  <div class="main">
+    <div class="content">
+
+      <header class="page-head">
+        <button class="burger" type="button" data-burger aria-label="打开菜单"><svg class="ico"><use href="#i-menu"/></svg></button>
+        <div class="head-txt">
+          <div class="eyebrow">复盘提升</div>
+          <h1>错题本</h1>
+          <p class="sub">每道错题都会自动收录并安排回炉，连续答对即可标记掌握。</p>
+        </div>
+        <div class="actions">
+          <button class="btn btn-outline" type="button"><svg class="ico"><use href="#i-doc"/></svg>导出错题</button>
+        </div>
+      </header>
+
+      <!-- ---------- 统计 ---------- -->
+      <div class="stat-grid cols-3 mb24">
+        <div class="stat" style="--accent: var(--slate)">
+          <div class="stat-label"><svg class="ico"><use href="#i-inbox"/></svg>错题总数</div>
+          <div class="stat-value">41<span class="unit">道</span></div>
+          <div class="stat-foot">自动收录，无需手动整理</div>
+        </div>
+        <div class="stat" style="--accent: var(--brick)">
+          <div class="stat-label"><svg class="ico"><use href="#i-mark"/></svg>待掌握</div>
+          <div class="stat-value">23<span class="unit">道</span></div>
+          <div class="stat-foot warn">建议今日回炉 3 道</div>
+        </div>
+        <div class="stat" style="--accent: var(--sage)">
+          <div class="stat-label"><svg class="ico"><use href="#i-target"/></svg>掌握率</div>
+          <div class="stat-value">44<span class="unit">%</span></div>
+          <div class="stat-foot good">已掌握 18 道</div>
+        </div>
+      </div>
+
+      <!-- ---------- 筛选 ---------- -->
+      <section class="card mb24" style="padding: var(--sp-5) var(--sp-6)">
+        <div class="pills mb12" data-exclusive>
+          <button class="pill active" type="button">未掌握<span class="pill-num">23</span></button>
+          <button class="pill" type="button">已掌握<span class="pill-num">18</span></button>
+          <button class="pill" type="button">全部<span class="pill-num">41</span></button>
+        </div>
+        <div class="pills" data-exclusive>
+          <button class="pill active" type="button">全部科目</button>
+          <button class="pill" type="button">大学英语<span class="pill-num">4</span></button>
+          <button class="pill" type="button">高等数学<span class="pill-num">11</span></button>
+          <button class="pill" type="button">计算机基础<span class="pill-num">3</span></button>
+          <button class="pill" type="button">管理学<span class="pill-num">5</span></button>
+        </div>
+      </section>
+
+      <!-- ---------- 错题列表 ---------- -->
+      <article class="card wrong-card">
+        <div class="tag-row mb12">
+          <span class="tag tag-coral">大学英语</span>
+          <span class="tag tag-outline">单选</span>
+          <span class="tag tag-brick">错 4 次</span>
+          <span class="tag tag-amber">未掌握</span>
+          <span class="hint" style="margin-left: auto">最近错误 10-11</span>
+        </div>
+        <p class="wrong-stem">The committee has ______ a new policy on remote work since last month.</p>
+        <div class="wrong-foot">
+          <button class="btn btn-soft btn-sm" type="button" data-drawer-open>
+            <svg class="ico"><use href="#i-spark"/></svg>查看 / AI 讲解
+          </button>
+          <a class="btn btn-outline btn-sm" href="practice.html">相似题推荐</a>
+          <button class="btn btn-ghost btn-sm" type="button">标记掌握</button>
+          <span class="spacer"></span>
+          <span class="hint">难度 2</span>
+        </div>
+      </article>
+
+      <article class="card wrong-card">
+        <div class="tag-row mb12">
+          <span class="tag tag-coral">高等数学</span>
+          <span class="tag tag-outline">多选</span>
+          <span class="tag tag-brick">错 3 次</span>
+          <span class="tag tag-amber">未掌握</span>
+          <span class="hint" style="margin-left: auto">最近错误 10-12</span>
+        </div>
+        <p class="wrong-stem">设 f(x) = x² − 4x + 3，下列关于 f(x) 的说法中，正确的有（　　）</p>
+        <div class="wrong-foot">
+          <button class="btn btn-soft btn-sm" type="button" data-drawer-open>
+            <svg class="ico"><use href="#i-spark"/></svg>查看 / AI 讲解
+          </button>
+          <a class="btn btn-outline btn-sm" href="practice.html">相似题推荐</a>
+          <button class="btn btn-ghost btn-sm" type="button">标记掌握</button>
+          <span class="spacer"></span>
+          <span class="hint">难度 3</span>
+        </div>
+      </article>
+
+      <article class="card wrong-card">
+        <div class="tag-row mb12">
+          <span class="tag tag-coral">计算机基础</span>
+          <span class="tag tag-outline">判断</span>
+          <span class="tag tag-brick">错 2 次</span>
+          <span class="tag tag-amber">未掌握</span>
+          <span class="hint" style="margin-left: auto">最近错误 10-09</span>
+        </div>
+        <p class="wrong-stem">在 TCP/IP 参考模型中，IP 协议工作于传输层，负责端到端的可靠数据传输。</p>
+        <div class="wrong-foot">
+          <button class="btn btn-soft btn-sm" type="button" data-drawer-open>
+            <svg class="ico"><use href="#i-spark"/></svg>查看 / AI 讲解
+          </button>
+          <a class="btn btn-outline btn-sm" href="practice.html">相似题推荐</a>
+          <button class="btn btn-ghost btn-sm" type="button">标记掌握</button>
+          <span class="spacer"></span>
+          <span class="hint">难度 1</span>
+        </div>
+      </article>
+
+      <div class="pager">
+        <span class="pager-total">共 23 条 · 每页 10 条</span>
+        <button class="pg" type="button" disabled aria-label="上一页"><svg class="ico ico-sm"><use href="#i-chev-l"/></svg></button>
+        <button class="pg cur" type="button" aria-current="page">1</button>
+        <button class="pg" type="button">2</button>
+        <button class="pg" type="button">3</button>
+        <button class="pg" type="button" aria-label="下一页"><svg class="ico ico-sm"><use href="#i-chev-r"/></svg></button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 详情抽屉（默认展开，便于评审） ==================== -->
+<div class="scrim" data-drawer-scrim hidden></div>
+<aside class="drawer" data-drawer data-drawer-start-open aria-label="错题详情">
+  <header class="drawer-head">
+    <h2>错题详情</h2>
+    <span class="tag tag-amber">未掌握</span>
+    <button class="btn btn-ghost btn-icon btn-sm" type="button" data-drawer-close aria-label="关闭">
+      <svg class="ico"><use href="#i-x"/></svg>
+    </button>
+  </header>
+
+  <div class="drawer-body">
+
+    <!-- 元信息 -->
+    <div class="panel">
+      <div class="tag-row mb16">
+        <span class="tag tag-coral">大学英语</span>
+        <span class="tag tag-outline">单选</span>
+        <span class="tag tag-brick">错 4 次</span>
+        <span class="tag tag-amber">难度 2</span>
+      </div>
+
+      <div class="answer-diff mb16">
+        <div class="answer-cell mine"><span>你的答案</span><b>B</b></div>
+        <div class="answer-cell right"><span>正确答案</span><b>A</b></div>
+      </div>
+
+      <div class="divider-label" style="margin-top: 0">作答轨迹</div>
+      <div class="history">
+        <span class="history-item miss"><svg class="ico"><use href="#i-x"/></svg>10-11 选 B</span>
+        <span class="history-item miss"><svg class="ico"><use href="#i-x"/></svg>10-06 选 B</span>
+        <span class="history-item miss"><svg class="ico"><use href="#i-x"/></svg>09-28 选 D</span>
+        <span class="history-item"><svg class="ico"><use href="#i-clock"/></svg>间隔 5 天未复习</span>
+      </div>
+    </div>
+
+    <!-- 重练 -->
+    <div class="panel">
+      <div class="card-head mb12">
+        <h2><svg class="ico"><use href="#i-refresh"/></svg>重新作答</h2>
+        <div class="card-sub">答对将自动标记为已掌握</div>
+      </div>
+
+      <div data-q-form>
+        <p class="q-stem">The committee has ______ a new policy on remote work since last month.</p>
+
+        <div class="opts" data-opts="single" role="radiogroup" aria-label="题目选项">
+          <label class="opt"><input type="radio" name="re" value="A"><span class="opt-key">A</span><span class="opt-txt">adopted</span></label>
+          <label class="opt"><input type="radio" name="re" value="B"><span class="opt-key">B</span><span class="opt-txt">adapted</span></label>
+          <label class="opt"><input type="radio" name="re" value="C"><span class="opt-key">C</span><span class="opt-txt">adjusted</span></label>
+          <label class="opt"><input type="radio" name="re" value="D"><span class="opt-key">D</span><span class="opt-txt">accepted</span></label>
+        </div>
+
+        <div class="mt16">
+          <button class="btn btn-primary btn-block" type="button" data-submit-btn disabled>提交重练</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ---------- AI 错题讲解（招牌组件） ---------- -->
+    <div class="ai-panel">
+      <div class="ai-panel-head">
+        <span class="ai-mark"><svg class="ico"><use href="#i-spark"/></svg></span>
+        <span class="ai-panel-title">AI 错题讲解</span>
+        <span class="tag-row">
+          <span class="tag tag-outline">来源：规则引擎</span>
+          <span class="tag tag-sage">已缓存</span>
+        </span>
+      </div>
+
+      <div class="ai-section">
+        <div class="ai-section-h"><svg class="ico"><use href="#i-alert"/></svg>错因分析</div>
+        <div class="ai-section-b">
+          <p>你把 <b>adopt</b>（采纳、通过）与 <b>adapt</b>（适应、改编）混用了。两者拼写仅差一个元音，语义却完全不同：adapt 强调「使适合、改编」，后面常接介词 to；adopt 强调「正式通过、采纳（建议 / 政策 / 方法）」，也可表示「收养」。</p>
+          <p>本题宾语是 a new policy（一项新政策），政策只能被「通过 / 采纳」，不能被「改编」，因此只能用 adopt。这属于专升本英语最高频的形近词辨析失分点。</p>
+        </div>
+      </div>
+
+      <div class="ai-section">
+        <div class="ai-section-h"><svg class="ico"><use href="#i-bulb"/></svg>解题思路</div>
+        <div class="ai-section-b">
+          <p>第一步 · 看搭配。空格后是 a new policy on remote work，判断动词与「政策」的支配关系。</p>
+          <p>第二步 · 排结构。adapt 表示「适应」时须接 to（adapt to sth），本句没有 to，结构上不成立；adjust 多用于调整具体参数（音量、高度、时间）；accept 的主语通常是人，指主观「接受」，不用于委员会的正式决议。</p>
+          <p>第三步 · 验时态。has + 过去分词构成现在完成时，与句末 since last month 完全呼应。</p>
+          <p>结论：答案选 <b>A. adopted</b>。</p>
+        </div>
+      </div>
+
+      <div class="ai-section">
+        <div class="ai-section-h"><svg class="ico"><use href="#i-tag"/></svg>知识点提示</div>
+        <div class="ai-section-b"><ul>
+          <li>固定搭配：adopt a policy / resolution（通过政策、决议）；adapt to the environment（适应环境）；adjust the volume（调节音量）。</li>
+          <li>记忆锚点：adopt 含 o，像张开的口「通过」议案；adapt 含 a，像分岔路口需要「调整适应」。</li>
+          <li>连带复习：现在完成时与 since / for 的搭配，以及主谓一致。</li>
+        </ul></div>
+      </div>
+
+      <div class="ai-foot">
+        <svg class="ico ico-sm"><use href="#i-alert"/></svg>
+        <span>AI 生成，仅供参考</span>
+        <span class="btn-row">
+          <button class="btn btn-ghost btn-sm" type="button">复制</button>
+          <button class="btn btn-outline btn-sm" type="button"><svg class="ico"><use href="#i-refresh"/></svg>重新生成</button>
+        </span>
+      </div>
+    </div>
+
+  </div>
+
+  <footer class="drawer-foot">
+    <button class="btn btn-outline" type="button"><svg class="ico"><use href="#i-check"/></svg>标记已掌握</button>
+    <span class="spacer"></span>
+    <a class="btn btn-soft" href="practice.html"><svg class="ico"><use href="#i-target"/></svg>相似题推荐</a>
+  </footer>
+</aside>
+
+<script src="mock.js"></script>
+</body>
+</html>

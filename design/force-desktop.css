@@ -1,0 +1,69 @@
+/* ============================================================
+   仅用于无头浏览器整页截图评审：强制桌面布局
+   （真实浏览器在 >900px 视口下不需要本文件）
+   作用：抵消 base.css 中 900px / 640px 断点在窄视口下的改写
+   ============================================================ */
+body { min-width: 1440px; }
+
+.app { grid-template-columns: var(--sidebar-w) minmax(0, 1fr); }
+/* 重新声明桌面态的整列底色（窄视口下 900px 断点会把它改成纯色） */
+.app {
+  background: linear-gradient(90deg,
+    var(--canvas-sunken) 0,
+    var(--canvas-sunken) calc(var(--sidebar-w) - 1px),
+    var(--line-soft) calc(var(--sidebar-w) - 1px),
+    var(--line-soft) var(--sidebar-w),
+    var(--canvas) var(--sidebar-w));
+}
+/* sticky 侧栏在整页截图里会被推到滚动末端，截图时改为随文档流置顶 */
+.sidebar { position: relative; transform: none; width: auto; height: auto; min-height: 100vh; box-shadow: none; background: transparent; border-right: none; }
+.burger { display: none; }
+
+.content { padding: var(--sp-8) var(--sp-10) var(--sp-10); }
+h1 { font-size: var(--fs-display); }
+.page-head { flex-direction: row; align-items: flex-start; }
+
+.stat-grid { grid-template-columns: repeat(4, 1fr); }
+.stat-grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
+.grid-2 { grid-template-columns: 1fr 1fr; }
+
+.card, .panel { padding: var(--sp-6); border-radius: var(--r-lg); }
+.rows { margin: 0 calc(-1 * var(--sp-6)) calc(-1 * var(--sp-6)); }
+.row { padding: var(--sp-4) var(--sp-6); }
+.bars { gap: var(--sp-3); height: 148px; }
+
+.ai-bar { flex-direction: row; padding: var(--sp-5) var(--sp-6); }
+.ai-actions { width: auto; }
+.ai-actions .btn { flex: none; }
+
+.verdict { flex-wrap: nowrap; }
+.verdict .verdict-sub { width: auto; margin-left: auto; }
+
+.drawer-foot { flex-wrap: nowrap; }
+.drawer-foot .btn { flex: none; }
+
+.answer-diff { grid-template-columns: 1fr 1fr; }
+
+/* 抽屉：fixed 在加宽文档下会贴到视口右缘并被截断，截图时改为随文档绝对定位 */
+body { position: relative; }
+.scrim[data-drawer-scrim] { display: none !important; }
+.drawer {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: auto;
+  height: auto;
+  animation: none;
+}
+.drawer-body { overflow: visible; }
+
+/* 登录页 */
+.auth { grid-template-columns: 1.05fr 1fr; }
+.auth-aside { display: flex; }
+.auth-form {
+  box-shadow: var(--sh-2);
+  border-color: var(--line-soft);
+  padding: var(--sp-8);
+  background: var(--surface);
+}
+.mock-nav { position: absolute; left: auto; right: var(--sp-4); bottom: var(--sp-4); justify-content: flex-end; overflow: visible; }
