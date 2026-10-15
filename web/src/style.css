@@ -1,0 +1,430 @@
+/* 设计系统：与 UI 库（Figma Make 源码）逐项对齐
+   panel = rounded-xl(12px) border(#e3e8f0) bg-white；品牌蓝 #1d4fd7；字体 Noto Sans SC */
+:root {
+  --bg: #f5f7fb;
+  --card: #ffffff;
+  --border: #e3e8f0;
+  --border-soft: #edf1f7;
+  --radius: 12px;
+  --radius-sm: 8px;
+  --radius-xs: 6px;
+  --text: #0f1a2b;
+  --text-2: #5b6779;
+  --text-3: #8a94a6;
+  --primary: #1d4fd7;
+  --primary-soft: #eaf0ff;
+  --primary-border: rgba(29, 79, 215, 0.2);
+  --green: #12805c;
+  --green-soft: #e4f5ee;
+  --red: #c0352b;
+  --red-soft: #fcebe9;
+  --amber: #b45309;
+  --amber-soft: #fdf1df;
+  --font: 'Noto Sans SC', 'Source Han Sans SC', 'PingFang SC', 'Microsoft YaHei', system-ui, sans-serif;
+
+  /* Element Plus 主题覆盖 */
+  --el-color-primary: #1d4fd7;
+  --el-color-primary-light-3: #4c74e0;
+  --el-color-primary-light-5: #7a99ea;
+  --el-color-primary-light-7: #a8bdf1;
+  --el-color-primary-light-8: #c0d0f6;
+  --el-color-primary-light-9: #eaf0ff;
+  --el-color-primary-dark-2: #1740b4;
+  --el-color-success: #12805c;
+  --el-color-success-light-5: #7dbfa5;
+  --el-color-success-light-9: #e4f5ee;
+  --el-color-warning: #b45309;
+  --el-color-warning-light-5: #d69257;
+  --el-color-warning-light-9: #fdf1df;
+  --el-color-danger: #c0352b;
+  --el-color-danger-light-5: #e0948e;
+  --el-color-danger-light-9: #fcebe9;
+  --el-color-error: #c0352b;
+  --el-color-info: #5b6779;
+  --el-color-info-light-5: #a3acba;
+  --el-color-info-light-8: #dbdfe6;
+  --el-color-info-light-9: #f0f2f6;
+  --el-text-color-primary: #0f1a2b;
+  --el-text-color-regular: #5b6779;
+  --el-text-color-secondary: #8a94a6;
+  --el-text-color-placeholder: #a6afbe;
+  --el-border-color: #e3e8f0;
+  --el-border-color-light: #edf1f7;
+  --el-border-color-lighter: #f0f3f8;
+  --el-border-color-extra-light: #f5f7fb;
+  --el-fill-color-light: #f5f7fb;
+  --el-fill-color-lighter: #f8fafc;
+  --el-bg-color: #ffffff;
+  --el-bg-color-page: #f5f7fb;
+  --el-border-radius-base: 8px;
+  --el-border-radius-small: 6px;
+  --el-box-shadow-light: 0 1px 2px rgba(15, 26, 43, 0.04);
+  --el-font-family: 'Noto Sans SC', 'Source Han Sans SC', 'PingFang SC', 'Microsoft YaHei', system-ui, sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 16px;
+  line-height: 1.5;
+  font-variant-numeric: tabular-nums;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4 { margin: 0; color: var(--text); font-weight: 700; }
+p { margin: 0; }
+button { cursor: pointer; font-family: inherit; }
+button:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+::selection { background: var(--primary); color: #fff; }
+
+/* ---- 通用面板（源码 panel = rounded-xl border border-line bg-white） ---- */
+.panel {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+.panel-pad { padding: 20px; }
+
+/* ---- 页面标题（源码 PageHeader） ---- */
+.page-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+}
+.page-head h1 { font-size: 24px; font-weight: 700; letter-spacing: -0.025em; line-height: 1.25; }
+.page-head .sub { margin-top: 4px; font-size: 14px; color: var(--text-2); }
+.page-pad > * + * { margin-top: 24px; }
+
+/* ---- 统计卡（源码 Stat） ---- */
+.stat-grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+.stat-card { padding: 20px; }
+.stat-card .label { font-size: 14px; color: var(--text-2); }
+.stat-card .value-row { margin-top: 8px; display: flex; align-items: baseline; gap: 4px; }
+.stat-card .value { font-size: 30px; font-weight: 700; letter-spacing: -0.025em; line-height: 1.25; }
+.stat-card .unit { font-size: 14px; color: var(--text-2); }
+.stat-card .note { margin-top: 4px; font-size: 12px; color: var(--text-2); }
+.stat-card .note.up { color: var(--green); }
+
+/* ---- 按钮（源码 Primary / Ghost） ---- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  font-size: 14px;
+  line-height: 20px;
+  transition: background-color 0.15s, border-color 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+.btn:disabled { cursor: not-allowed; opacity: 0.4; }
+.btn-primary {
+  background: var(--primary);
+  color: #fff;
+  font-weight: 500;
+  padding: 8px 16px;
+}
+.btn-primary:hover:not(:disabled) { background: rgba(29, 79, 215, 0.9); }
+.btn-ghost {
+  background: var(--card);
+  border-color: var(--border);
+  color: var(--text);
+  padding: 6px 14px;
+}
+.btn-ghost:hover:not(:disabled) { border-color: var(--primary); color: var(--primary); }
+.btn-danger {
+  background: var(--card);
+  border-color: rgba(192, 53, 43, 0.3);
+  color: var(--red);
+  padding: 6px 14px;
+}
+.btn-danger:hover:not(:disabled) { background: var(--red-soft); }
+.btn-block { width: 100%; padding: 10px 16px; font-weight: 500; }
+.btn-text {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--primary);
+  font-size: 14px;
+  font-weight: 500;
+}
+.btn-text:hover { text-decoration: underline; }
+
+/* ---- 分段控件（源码 Segmented：选中实心品牌蓝） ---- */
+.seg {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 4px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+.seg-item {
+  border: none;
+  background: transparent;
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--text-2);
+  transition: background-color 0.15s, color 0.15s;
+}
+.seg-item:hover { color: var(--text); }
+.seg-item.active { background: var(--primary); color: #fff; }
+
+/* ---- 圆角胶囊筛选（源码 Mistakes 科目 chips） ---- */
+.chip {
+  border: none;
+  background: transparent;
+  border-radius: 999px;
+  padding: 4px 14px;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--text-2);
+  transition: background-color 0.15s, color 0.15s;
+}
+.chip:hover { background: var(--bg); color: var(--text); }
+.chip.active { background: var(--primary-soft); color: var(--primary); font-weight: 500; }
+
+/* ---- 标签（源码 rounded px-1.5 py-0.5 text-xs） ---- */
+.tag {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-size: 12px;
+  line-height: 18px;
+  white-space: nowrap;
+}
+.tag-brand { background: var(--primary-soft); color: var(--primary); }
+.tag-muted { background: var(--bg); color: var(--text-2); }
+.tag-ok { background: var(--green-soft); color: var(--green); }
+.tag-warn { background: var(--amber-soft); color: var(--amber); }
+.tag-bad { background: var(--red-soft); color: var(--red); }
+
+/* ---- 表单（源码 field / Label / FormError） ---- */
+.field {
+  width: 100%;
+  border: 1px solid var(--border);
+  background: var(--card);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--text);
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.field::placeholder { color: rgba(91, 103, 121, 0.6); }
+.field:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(29, 79, 215, 0.15); }
+textarea.field { resize: vertical; }
+.form-label {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 6px;
+  font-size: 14px;
+  font-weight: 500;
+}
+.form-label .hint { font-size: 12px; font-weight: 400; color: var(--text-2); }
+.form-error { margin-top: 4px; font-size: 12px; color: var(--red); }
+
+/* ---- 分区卡片头（源码 border-b px-5 py-4 + font-bold） ---- */
+.panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border-bottom: 1px solid var(--border);
+  padding: 16px 20px;
+}
+.panel-head h2 { font-size: 15px; font-weight: 700; }
+.panel-head .extra { font-size: 12px; color: var(--text-2); }
+
+/* ---- 行列表（源码 ul > li border-b px-5 py-4） ---- */
+.row-list { list-style: none; margin: 0; padding: 0; }
+.row-list > li { border-bottom: 1px solid var(--border); }
+.row-list > li:last-child { border-bottom: none; }
+
+/* ---- 选项按钮（源码 Exam/Today/Mistakes 选项） ---- */
+.opt {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px;
+  text-align: left;
+  font-size: 14px;
+  line-height: 1.6;
+  background: var(--card);
+  color: var(--text);
+  transition: border-color 0.15s, background-color 0.15s, opacity 0.15s;
+}
+.opt:hover:not(:disabled) { border-color: rgba(29, 79, 215, 0.6); }
+.opt.selected { border-color: var(--primary); background: var(--primary-soft); }
+.opt.right { border-color: var(--green); background: var(--green-soft); }
+.opt.wrong { border-color: var(--red); background: var(--red-soft); }
+.opt.dimmed { opacity: 0.5; }
+.opt:disabled { cursor: not-allowed; }
+.opt .key {
+  font-weight: 700;
+  color: var(--text-2);
+  flex-shrink: 0;
+}
+.opt .key-circle {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  border-radius: 999px;
+  background: var(--bg);
+  color: var(--text-2);
+  font-size: 12px;
+  font-weight: 700;
+}
+.opt.selected .key-circle { background: var(--primary); color: #fff; }
+.opt .verdict { margin-left: auto; font-size: 12px; font-weight: 500; }
+.opt .verdict.ok { color: var(--green); }
+.opt .verdict.bad { color: var(--red); }
+
+/* ---- 表格（源码 admin table） ---- */
+.table-wrap { overflow-x: auto; }
+.table { width: 100%; border-collapse: collapse; text-align: left; font-size: 14px; }
+.table thead tr { background: var(--bg); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+.table th {
+  padding: 12px 16px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-2);
+  white-space: nowrap;
+}
+.table td { padding: 14px 16px; border-bottom: 1px solid var(--border); }
+.table tbody tr:hover { background: rgba(245, 247, 251, 0.6); }
+.table .empty td { padding: 56px 0; text-align: center; color: var(--text-2); }
+
+/* ---- 提示条（源码 Alert） ---- */
+.alert {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(192, 53, 43, 0.2);
+  background: var(--red-soft);
+  padding: 12px 16px;
+  font-size: 14px;
+  color: var(--red);
+}
+.alert .alert-main { flex: 1; }
+
+/* ---- 分隔线标题（源码 AI 错题讲解） ---- */
+.divider-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 32px 0 16px;
+}
+.divider-title .t { font-size: 14px; font-weight: 700; }
+.divider-title .line { height: 1px; flex: 1; background: var(--border); }
+
+/* ---- 进度条（源码 h-2.5 rounded-full） ---- */
+.progress {
+  position: relative;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--border);
+  overflow: hidden;
+}
+.progress .fill { height: 100%; border-radius: 999px; background: var(--primary); transition: width 0.5s; }
+.progress-lg { height: 10px; }
+.progress .target {
+  position: absolute;
+  top: -4px;
+  width: 2px;
+  height: 14px;
+  border-radius: 2px;
+  background: rgba(15, 26, 43, 0.4);
+}
+
+/* ---- 图表通用 ---- */
+.chart { width: 100%; display: block; }
+.axis-text { font-family: inherit; }
+
+/* ---- 工具类 ---- */
+.mt-1 { margin-top: 4px; }
+.mt-2 { margin-top: 8px; }
+.mt-3 { margin-top: 12px; }
+.mt-4 { margin-top: 16px; }
+.mt-6 { margin-top: 24px; }
+.muted { color: var(--text-2); }
+.text-xs { font-size: 12px; }
+.text-sm { font-size: 14px; }
+.text-ok { color: var(--green); }
+.text-bad { color: var(--red); }
+.text-warn { color: var(--amber); }
+.text-brand { color: var(--primary); }
+.flex-between { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.empty-tip {
+  padding: 48px 20px;
+  text-align: center;
+  font-size: 14px;
+  color: var(--text-2);
+}
+
+/* Element Plus 细节统一（弹层/抽屉/消息对齐源码 overlay 规格） */
+.el-card { --el-card-border-color: var(--border); --el-card-border-radius: 12px; }
+.el-drawer { --el-drawer-bg-color: #fff; }
+.el-drawer__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0;
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+  font-weight: 700;
+}
+.el-drawer__body { padding: 20px 24px; }
+.el-message-box {
+  border: none;
+  border-radius: 12px;
+  padding-bottom: 0;
+  max-width: 420px;
+}
+.el-message-box__header { padding: 16px 24px; border-bottom: 1px solid var(--border); }
+.el-message-box__title { font-weight: 700; }
+.el-message-box__content { padding: 20px 24px; }
+.el-message-box__btns { padding: 12px 24px 16px; border-top: 1px solid var(--border); gap: 8px; }
+.el-message {
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: #fff;
+  box-shadow: 0 8px 24px rgba(15, 26, 43, 0.12);
+  padding: 10px 16px;
+}
+.el-dialog {
+  border-radius: 12px;
+  overflow: hidden;
+  max-width: calc(100vw - 32px);
+}
+.el-dialog__header { margin: 0; padding: 16px 24px; border-bottom: 1px solid var(--border); font-weight: 700; }
+.el-dialog__body { padding: 20px 24px; }
+.el-dialog__footer { padding: 16px 24px; border-top: 1px solid var(--border); }
+.el-button { font-weight: 500; }
+.el-select__wrapper { border-radius: 8px; }

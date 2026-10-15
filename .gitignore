@@ -1,0 +1,17 @@
+# 依赖与构建产物
+node_modules/
+dist/
+.build-tmp/
+
+# 环境与密钥（含 JWT_SECRET / DB_PASSWORD，严禁入库）
+.env
+.env.local
+.env.*.local
+
+# 日志与系统文件
+*.log
+.DS_Store
+Thumbs.db
+
+# 临时缓存
+.tmp/
