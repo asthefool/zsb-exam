@@ -71,4 +71,12 @@ async function softDelete(id) {
   await pool.query('UPDATE questions SET status = 0, deleted_at = NOW() WHERE id = ?', [id]);
 }
 
-module.exports = { listSubjects, listQuestions, findById, adminList, create, update, softDelete };
+// 题库规模：按科目、题型统计启用题目数（覆盖率分母）
+async function bankStats() {
+  const [rows] = await pool.query(
+    `SELECT subject_id, q_type, COUNT(*) AS total FROM questions
+     WHERE status = 1 AND deleted_at IS NULL GROUP BY subject_id, q_type`);
+  return rows;
+}
+
+module.exports = { listSubjects, listQuestions, findById, adminList, create, update, softDelete, bankStats };

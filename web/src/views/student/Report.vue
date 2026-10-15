@@ -2,17 +2,17 @@
 // 学情报告（对齐 UI 库 Report.tsx 结构）：统计卡 + 预估分趋势 + 能力雷达 + 学习热力图 + AI 诊断
 // 真实数据：答题统计 / 错题分布 / 计划任务；推导部分在页面标注
 import { ref, reactive, computed, onMounted } from 'vue';
-import { getOverview, getCurrentPlan, getSubjects, getQuestions, getWrongQuestions } from '../../api';
+import { getOverview, getCurrentPlan, getSubjects } from '../../api';
 
 const overview = ref(null);
 const plan = ref(null);
 const subjects = ref([]);
-const mastery = reactive({});
+const mastery = reactive({}); // subject_id -> 掌握度汇总（来自 overview.mastery）
 const loading = ref(true);
 const error = ref(false);
 const range = ref('近 7 周');
 
-const estimate = computed(() => Math.round((overview.value?.accuracy || 0) * 4));
+const estimate = computed(() => overview.value?.mastery?.estimate?.score || 0);
 
 const statCards = computed(() => [
   {
@@ -35,10 +35,9 @@ const statCards = computed(() => [
   }
 ]);
 
+// 雷达图等数值场景：样本不足的科目按 0 计，列表中会单独标注
 function masteryOf(id) {
-  const m = mastery[id];
-  if (!m || !m.total) return 0;
-  return Math.max(0, Math.min(100, Math.round(((m.total - m.wrong) / m.total) * 100)));
+  return mastery[id]?.mastery ?? 0;
 }
 
 // ---- 预估分趋势（示例曲线：按当前预估分回推，页面标注） ----
@@ -130,7 +129,8 @@ const diagnosis = computed(() => {
   }
 
   const weakest = subjects.value
-    .map((s) => ({ s, m: masteryOf(s.id), wrong: mastery[s.id]?.wrong || 0 }))
+    .filter((s) => mastery[s.id]?.mastery !== null && mastery[s.id]?.mastery !== undefined)
+    .map((s) => ({ s, m: masteryOf(s.id), wrong: mastery[s.id]?.wrong_count || 0 }))
     .sort((a, b) => a.m - b.m)[0];
   if (weakest && weakest.wrong > 0) {
     items.push({
@@ -168,15 +168,7 @@ async function load() {
     if (ov.status !== 'fulfilled') error.value = true;
     plan.value = planRes.status === 'fulfilled' ? planRes.value : null;
     subjects.value = subs.status === 'fulfilled' ? (subs.value || []) : [];
-    await Promise.all(subjects.value.map(async (s) => {
-      try {
-        const [q, w] = await Promise.all([
-          getQuestions({ subject_id: s.id, page: 1, size: 1 }),
-          getWrongQuestions({ subject_id: s.id, mastered: 0, page: 1, size: 1 })
-        ]);
-        mastery[s.id] = { total: q.total || 0, wrong: w.total || 0 };
-      } catch (e) { /* 单科失败不影响整体 */ }
-    }));
+    for (const s of overview.value?.mastery?.subjects || []) mastery[s.subject_id] = s;
   } catch (e) {
     error.value = true;
   } finally {

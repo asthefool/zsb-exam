@@ -2,7 +2,7 @@
 // 智能题库（对齐 UI 库 Bank.tsx 结构）：科目 Segmented + 进度列表 + 推荐练习，答题会话走真实判分
 import { ref, reactive, computed, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { getSubjects, getQuestions, getWrongQuestions, submitAnswer } from '../../api';
+import { getOverview, getSubjects, getQuestions, getWrongQuestions, submitAnswer } from '../../api';
 
 const route = useRoute();
 const router = useRouter();
@@ -27,7 +27,7 @@ const subject = ref(null); // 当前科目（源码默认第一个）
 const diff = ref('全部');
 
 const typeStats = reactive({});   // q_type -> 题量
-const wrongByType = reactive({}); // q_type -> 未掌握错题数
+const chapterOf = reactive({});   // q_type -> 章节掌握度（来自 overview.mastery，当前科目）
 const recWrongCount = ref(0);
 
 const session = ref(null); // { title, subjectName, list, idx, results }
@@ -66,23 +66,24 @@ async function loadStats() {
       typeStats[t.value] = 0;
     }
   }));
-  for (const k of Object.keys(wrongByType)) delete wrongByType[k];
+  for (const k of Object.keys(chapterOf)) delete chapterOf[k];
   recWrongCount.value = 0;
   try {
-    const d = await getWrongQuestions({ subject_id: s ? s.id : undefined, mastered: 0, page: 1, size: 100 });
+    const ov = await getOverview();
     if (subject.value !== s) return;
-    for (const row of d.list || []) {
-      wrongByType[row.q_type] = (wrongByType[row.q_type] || 0) + 1;
-    }
+    const row = (ov.mastery?.subjects || []).find((x) => s && x.subject_id === s.id);
+    for (const c of row?.chapters || []) chapterOf[c.q_type] = c;
+  } catch (e) { /* 掌握度加载失败不影响刷题 */ }
+  try {
+    const d = await getWrongQuestions({ subject_id: s ? s.id : undefined, mastered: 0, page: 1, size: 1 });
+    if (subject.value !== s) return;
     recWrongCount.value = d.total || 0;
   } catch (e) { /* 无错题数据不影响刷题 */ }
 }
 
+// 章节掌握度：null 表示样本不足
 function masteryOf(t) {
-  const total = typeStats[t] || 0;
-  const wrong = wrongByType[t] || 0;
-  if (!total) return 0;
-  return Math.max(0, Math.min(100, Math.round(((total - wrong) / total) * 100)));
+  return chapterOf[t]?.mastery ?? null;
 }
 
 function pickSubject(s) {
@@ -295,14 +296,15 @@ onMounted(async () => {
               <div class="chapter-main">
                 <div class="chapter-name">{{ t.label }}</div>
                 <div class="progress">
-                  <div class="fill" :style="{ width: `${masteryOf(t.value)}%` }"></div>
+                  <div class="fill" :style="{ width: `${masteryOf(t.value) ?? 0}%` }"></div>
                 </div>
                 <div class="chapter-meta">
-                  {{ Math.max(0, (typeStats[t.value] || 0) - (wrongByType[t.value] || 0)) }} / {{ typeStats[t.value] || 0 }} 题，完成 {{ masteryOf(t.value) }}%
+                  覆盖 {{ chapterOf[t.value]?.coverage ?? 0 }}%，已做 {{ chapterOf[t.value]?.answered ?? 0 }} / {{ typeStats[t.value] || 0 }} 题
                 </div>
               </div>
               <div class="chapter-acc">
-                <div class="acc-num" :class="{ bad: masteryOf(t.value) < 60 }">{{ masteryOf(t.value) }}%</div>
+                <div v-if="masteryOf(t.value) !== null" class="acc-num" :class="{ bad: masteryOf(t.value) < 60 }">{{ masteryOf(t.value) }}%</div>
+                <div v-else class="acc-need">再做 {{ chapterOf[t.value]?.need_more ?? 10 }} 题可评估</div>
                 <div class="acc-label">掌握度</div>
               </div>
               <button
@@ -386,6 +388,7 @@ export default { methods: { parseOptions } };
 .acc-num { font-size: 18px; font-weight: 700; }
 .acc-num.bad { color: var(--red); }
 .acc-label { font-size: 12px; color: var(--text-2); }
+.acc-need { font-size: 12px; color: var(--text-2); }
 
 /* 推荐行 */
 .rec-row {

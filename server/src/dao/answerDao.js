@@ -26,6 +26,15 @@ async function statsByUser(userId) {
   return rows[0];
 }
 
+// 用户全部作答（按时间升序，掌握度计算用）
+async function listWithQuestion(userId) {
+  const [rows] = await pool.query(
+    `SELECT a.question_id, a.is_correct, a.answered_at, q.subject_id, q.q_type
+     FROM answer_records a JOIN questions q ON q.id = a.question_id
+     WHERE a.user_id = ? ORDER BY a.answered_at, a.id`, [userId]);
+  return rows;
+}
+
 // 近 7 日正确率（计划生成上下文）
 async function recentAccuracy(userId) {
   const [rows] = await pool.query(
@@ -35,4 +44,4 @@ async function recentAccuracy(userId) {
   return rows[0];
 }
 
-module.exports = { create, listByUserQuestion, statsByUser, recentAccuracy };
+module.exports = { create, listByUserQuestion, statsByUser, listWithQuestion, recentAccuracy };
