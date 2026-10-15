@@ -66,6 +66,17 @@ async function distributionBySubject(userId) {
   return rows;
 }
 
+// 按科目、题型聚合的未掌握错题数（掌握度面板用）
+async function unmasteredBySubjectType(userId) {
+  const [rows] = await pool.query(
+    `SELECT q.subject_id, q.q_type, COUNT(*) AS wrong_total
+     FROM wrong_questions w
+     JOIN questions q ON q.id = w.question_id
+     WHERE w.user_id = ? AND w.mastered = 0 AND q.status = 1 AND q.deleted_at IS NULL
+     GROUP BY q.subject_id, q.q_type`, [userId]);
+  return rows;
+}
+
 // 取未掌握错题样本（计划任务引用具体题目）
 async function sampleUnmastered(userId, limit = 30) {
   const [rows] = await pool.query(
@@ -78,5 +89,5 @@ async function sampleUnmastered(userId, limit = 30) {
 
 module.exports = {
   findById, findByUserQuestion, upsertWrong, list, setMastered,
-  countActive, distributionBySubject, sampleUnmastered
+  countActive, distributionBySubject, unmasteredBySubjectType, sampleUnmastered
 };

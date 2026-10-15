@@ -17,7 +17,7 @@ const error = ref(false);
 const overview = ref(null);
 const plan = ref(null);
 const subjects = ref([]);
-const mastery = reactive({}); // subject_id -> { total, wrong }
+const mastery = reactive({}); // subject_id -> 掌握度汇总（来自 overview.mastery）
 const weakList = ref([]);
 const selectedSubject = ref(null);
 
@@ -46,8 +46,8 @@ const examInfo = computed(() => {
   return { date, daysLeft: diff >= 0 ? diff : 0, label: `${d.getFullYear()} 年 ${d.getMonth() + 1} 月 ${d.getDate()} 日` };
 });
 
-// 综合预估分：由正确率映射到 400 分制（页面标注推导口径）
-const estimate = computed(() => Math.round((overview.value?.accuracy || 0) * 4));
+// 综合预估分 = Σ 科目掌握度 × 单科满分（与题库、学情报告同一口径）
+const estimate = computed(() => overview.value?.mastery?.estimate?.score || 0);
 
 // 连续打卡：当前计划中连续完成任务的天数（真实数据）
 const streak = computed(() => {
@@ -122,11 +122,9 @@ const advice = computed(() => {
   return parts.join('；') + '。';
 });
 
-// ---- 科目掌握度：掌握率 = (该科目题量 - 未掌握错题) / 题量 ----
+// ---- 科目掌握度：null 表示样本不足，页面只显示"再做 N 题可评估" ----
 function masteryOf(id) {
-  const m = mastery[id];
-  if (!m || !m.total) return 0;
-  return Math.max(0, Math.min(100, Math.round(((m.total - m.wrong) / m.total) * 100)));
+  return mastery[id]?.mastery ?? null;
 }
 
 async function selectSubject(s) {
@@ -140,14 +138,18 @@ async function selectSubject(s) {
 }
 
 // ---- 每日一题：按日期取单选题，作答走真实判分 ----
-async function loadDaily(shift = 0) {
+// 换一题次数，每次累加才能切到下一题；按用户保存，刷新后保留
+const dailyKey = `daily_shift_${localStorage.getItem('userId') || 0}`;
+const dailyShift = ref(Number(localStorage.getItem(dailyKey)) || 0);
+
+async function loadDaily() {
   dailyLoading.value = true;
   dailyResult.value = null;
   dailyPicked.value = null;
   try {
     const probe = await getQuestions({ q_type: 'single', page: 1, size: 1 });
     const pages = Math.max(1, probe.total || 1);
-    const dayIndex = Math.floor(Date.now() / 86400000) + shift;
+    const dayIndex = Math.floor(Date.now() / 86400000) + dailyShift.value;
     const data = await getQuestions({ q_type: 'single', page: (dayIndex % pages) + 1, size: 1 });
     daily.value = data.list[0] || null;
     if (!daily.value) {
@@ -159,6 +161,12 @@ async function loadDaily(shift = 0) {
   } finally {
     dailyLoading.value = false;
   }
+}
+
+function nextDaily() {
+  dailyShift.value += 1;
+  localStorage.setItem(dailyKey, String(dailyShift.value));
+  return loadDaily();
 }
 
 const dailyOptions = computed(() => {
@@ -218,15 +226,7 @@ async function load() {
     plan.value = planRes.status === 'fulfilled' ? planRes.value : null;
     subjects.value = subs.status === 'fulfilled' ? (subs.value || []) : [];
 
-    await Promise.all(subjects.value.map(async (s) => {
-      try {
-        const [q, w] = await Promise.all([
-          getQuestions({ subject_id: s.id, page: 1, size: 1 }),
-          getWrongQuestions({ subject_id: s.id, mastered: 0, page: 1, size: 1 })
-        ]);
-        mastery[s.id] = { total: q.total || 0, wrong: w.total || 0 };
-      } catch (e) { /* 单科失败不影响整体 */ }
-    }));
+    for (const s of overview.value?.mastery?.subjects || []) mastery[s.subject_id] = s;
 
     if (subjects.value.length) await selectSubject(subjects.value[0]);
     await loadDaily();
@@ -367,20 +367,22 @@ onMounted(load);
             <div class="mastery-top">
               <span class="mastery-name">{{ s.name }}</span>
               <span class="mastery-score">
-                <b>{{ masteryOf(s.id) }}</b>
+                <b v-if="masteryOf(s.id) !== null">{{ masteryOf(s.id) }}</b>
+                <span v-else class="mastery-need">再做 {{ mastery[s.id]?.need_more ?? 10 }} 题可评估</span>
               </span>
             </div>
             <div class="progress">
-              <div class="fill" :style="{ width: `${masteryOf(s.id)}%` }"></div>
+              <div class="fill" :style="{ width: `${masteryOf(s.id) ?? 0}%` }"></div>
               <div class="target" :style="{ left: '85%' }" :title="'目标 85'"></div>
             </div>
+            <div class="mastery-cov">覆盖 {{ mastery[s.id]?.coverage ?? 0 }}%</div>
           </button>
           <div class="mastery-note">竖线为目标分数</div>
         </div>
         <div class="weak-panel">
           <div class="weak-head">
             <h3>{{ selectedSubject ? `${selectedSubject.name}优先攻克` : '优先攻克' }}</h3>
-            <span class="text-xs muted">未掌握 {{ weakList.length ? (mastery[selectedSubject?.id]?.wrong ?? weakList.length) : 0 }} 道</span>
+            <span class="text-xs muted">未掌握 {{ mastery[selectedSubject?.id]?.wrong_count ?? 0 }} 道</span>
           </div>
           <ul v-if="weakList.length" class="weak-list">
             <li v-for="w in weakList" :key="w.id" class="weak-row">
@@ -425,7 +427,7 @@ onMounted(load);
             <span class="analysis-label">AI 解析</span>
             {{ dailyResult.analysis || '暂无解析' }}
           </p>
-          <button class="btn btn-ghost" @click="loadDaily(1)">换一题</button>
+          <button class="btn btn-ghost" @click="nextDaily">换一题</button>
         </div>
       </template>
       <div v-else class="empty-tip">{{ dailyLoading ? '题目加载中……' : '暂无题目' }}</div>
@@ -572,6 +574,8 @@ onMounted(load);
 .mastery-item.active .mastery-name { color: var(--primary); }
 .mastery-score { font-size: 14px; }
 .mastery-score b { font-weight: 700; }
+.mastery-need { font-size: 12px; color: var(--text-2); }
+.mastery-cov { margin-top: 6px; font-size: 12px; color: var(--text-2); }
 .mastery-item .progress { margin-top: 10px; }
 .mastery-note { padding: 4px 16px 8px; font-size: 12px; color: var(--text-2); }
 .weak-panel { padding: 20px; }
