@@ -8,6 +8,8 @@ const HALF_LIFE_DAYS = 30;   // 之后每 30 天权重减半
 const RETRY_CREDIT = 1.1;    // 错题回炉答对计 1.1 分（一次做对计 1 分）
 const MIN_SAMPLE = 10;       // 做过的题不足 10 道，不给百分比
 const SUBJECT_FULL = 100;    // 单科满分，综合预估分 = Σ 科目掌握度 × 单科满分
+const TREND_WEEKS = 7;       // 预估分趋势回溯周数（含本周）
+const DAY_MS = 86400000;
 const Q_TYPES = ['single', 'multiple', 'judge'];
 
 function weightOf(ageDays) {
@@ -23,7 +25,7 @@ function aggregate(records, bankTotal, wrongCount, now) {
   let creditSum = 0;
   for (const r of records) {
     answered.add(r.question_id);
-    const ageDays = Math.max(0, (now - new Date(r.answered_at).getTime()) / 86400000);
+    const ageDays = Math.max(0, (now - new Date(r.answered_at).getTime()) / DAY_MS);
     const w = weightOf(ageDays);
     let credit = 0;
     if (r.is_correct) {
@@ -46,16 +48,8 @@ function aggregate(records, bankTotal, wrongCount, now) {
   return { ...base, mastery, need_more: 0 };
 }
 
-// 学情口径汇总：科目掌握度、题型章节掌握度、综合预估分（首页 / 题库 / 报告共用）
-async function summary(userId) {
-  const [subjects, bank, records, unmastered] = await Promise.all([
-    questionDao.listSubjects(),
-    questionDao.bankStats(),
-    answerDao.listWithQuestion(userId),
-    wrongDao.unmasteredBySubjectType(userId)
-  ]);
-  const now = Date.now();
-
+// 在给定时刻 now 上，按科目 / 题型汇总掌握度
+function buildRows(subjects, bank, unmastered, records, now) {
   const bankMap = new Map();
   const wrongMap = new Map();
   const recMap = new Map();
@@ -72,7 +66,7 @@ async function summary(userId) {
     pushRec(`${r.subject_id}|${r.q_type}`, r);
   }
 
-  const rows = subjects.map((s) => {
+  return subjects.map((s) => {
     const chapters = Q_TYPES.map((t) => {
       const key = `${s.id}|${t}`;
       return {
@@ -90,15 +84,48 @@ async function summary(userId) {
       chapters
     };
   });
+}
 
+function estimateOf(rows) {
   const evaluated = rows.filter((r) => r.mastery !== null);
   return {
+    score: Math.round(evaluated.reduce((a, r) => a + (r.mastery * r.full) / 100, 0)),
+    max: rows.length * SUBJECT_FULL,
+    evaluated: evaluated.length
+  };
+}
+
+// 每周末时点：只使用当时已作答的记录，并以该时刻为「现在」重算预估分（口径与 estimate 相同）
+// 不满足计算条件（无科目达到 MIN_SAMPLE）的周记为 score: null
+function weeklyTrend(subjects, bank, records, now) {
+  const points = [];
+  for (let k = TREND_WEEKS - 1; k >= 0; k--) {
+    const at = now - k * 7 * DAY_MS;
+    const upTo = records.filter((r) => new Date(r.answered_at).getTime() <= at);
+    const est = estimateOf(buildRows(subjects, bank, [], upTo, at));
+    points.push({
+      weeks_ago: k,
+      score: est.evaluated ? est.score : null,
+      evaluated: est.evaluated
+    });
+  }
+  return points;
+}
+
+// 学情口径汇总：科目掌握度、题型章节掌握度、综合预估分、预估分周趋势（首页 / 题库 / 报告共用）
+async function summary(userId) {
+  const [subjects, bank, records, unmastered] = await Promise.all([
+    questionDao.listSubjects(),
+    questionDao.bankStats(),
+    answerDao.listWithQuestion(userId),
+    wrongDao.unmasteredBySubjectType(userId)
+  ]);
+  const now = Date.now();
+  const rows = buildRows(subjects, bank, unmastered, records, now);
+  return {
     subjects: rows,
-    estimate: {
-      score: Math.round(evaluated.reduce((a, r) => a + (r.mastery * r.full) / 100, 0)),
-      max: rows.length * SUBJECT_FULL,
-      evaluated: evaluated.length
-    }
+    estimate: estimateOf(rows),
+    trend: weeklyTrend(subjects, bank, records, now)
   };
 }
 
