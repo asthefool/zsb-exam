@@ -218,9 +218,9 @@ onMounted(load);
     <div class="grid-top">
       <section class="panel panel-pad">
         <div class="chart-head">
-          <h2>预估分趋势</h2>
+          <h2>预估分趋势 <span class="sample-tag">示例</span></h2>
           <span class="text-xs" :class="trendRise >= 0 ? 'text-ok' : 'text-bad'">
-            {{ trendRise >= 0 ? '↑' : '↓' }} {{ Math.abs(trendRise) }} 分，自第 1 周起
+            示例走势 {{ trendRise >= 0 ? '↑' : '↓' }} {{ Math.abs(trendRise) }} 分
           </span>
         </div>
         <div>
@@ -262,7 +262,7 @@ onMounted(load);
             <span v-for="l in trendLabels" :key="l">{{ l }}</span>
           </div>
         </div>
-        <p class="chart-note">走势为按当前预估分回推的示例曲线，接入逐周作答统计后将展示真实趋势。</p>
+        <p class="chart-note">⚠ 示例数据：曲线由当前预估分回推生成，并非真实作答记录。接入按周统计的作答数据后再替换为真实趋势。</p>
       </section>
 
       <section class="panel panel-pad">
@@ -362,6 +362,7 @@ onMounted(load);
   color: var(--text-2);
 }
 .chart-note { margin-top: 12px; font-size: 12px; color: var(--text-3); }
+.sample-tag { font-size: 11px; font-weight: 500; padding: 1px 6px; border-radius: 4px; color: var(--text-2); border: 1px dashed var(--border); vertical-align: middle; }
 .radar {
   margin: 8px auto 0;
   display: block;
