@@ -40,7 +40,7 @@ zsb-exam/
 │       ├── ai/              # AI 接口层：provider / mock / llm / 规则引擎 / prompt 模板
 │       ├── dao/              # 数据访问（mysql2 连接池 + 参数化 SQL）
 │       ├── middleware/       # JWT 鉴权 / 角色守卫 / 限流 / 错误处理
-│       ├── routes/          # auth / exam / plan / admin 四组路由（51 个业务接口 + /api/health）
+│       ├── routes/          # auth / exam / plan / admin 四组路由（52 个业务接口 + /api/health）
 │       ├── services/         # 业务逻辑（判分、错题归集、计划生成、数据备份等）
 │       └── utils/            # 统一响应、错误码、JWT
 └── web/                     # 前端 SPA
