@@ -1,8 +1,8 @@
 <script setup>
 // 学情报告（对齐 UI 库 Report.tsx 结构）：统计卡 + 预估分趋势 + 能力雷达 + 学习热力图 + AI 诊断
 // 真实数据：答题统计 / 错题分布 / 计划任务；推导部分在页面标注
-import { ref, reactive, computed, onMounted } from 'vue';
-import { getOverview, getCurrentPlan, getSubjects } from '../../api';
+import { ref, reactive, computed, onMounted, watch } from 'vue';
+import { getOverview, getCurrentPlan, getSubjects, getTrend } from '../../api';
 
 const overview = ref(null);
 const plan = ref(null);
@@ -40,11 +40,10 @@ function masteryOf(id) {
   return mastery[id]?.mastery ?? 0;
 }
 
-// ---- 预估分趋势（后端按周回推：每个周末时点按当时作答重算，口径同预估分；无数据的周不显示） ----
+// ---- 预估分趋势（接口 /home/trend 返回逐周分数；score 为 null 的周不画点） ----
 const trendCount = computed(() => (range.value === '近 7 周' ? 7 : 5));
-const trendShown = computed(() =>
-  (overview.value?.mastery?.trend || []).filter((p) => p.score !== null).slice(-trendCount.value)
-);
+const trendRaw = ref([]);
+const trendShown = computed(() => trendRaw.value.filter((p) => p.score !== null));
 const trendPoints = computed(() => trendShown.value.map((p) => p.score));
 const trendLabels = computed(() =>
   trendShown.value.map((p) => (p.weeks_ago === 0 ? '本周' : `${p.weeks_ago} 周前`))
@@ -157,9 +156,20 @@ function diagTagClass(kind) {
   return kind === 'ok' ? 'tag-ok' : kind === 'risk' ? 'tag-bad' : kind === 'info' ? 'tag-brand' : 'tag-warn';
 }
 
+async function loadTrend() {
+  try {
+    trendRaw.value = await getTrend(trendCount.value);
+  } catch (e) {
+    trendRaw.value = [];
+  }
+}
+
+watch(range, loadTrend);
+
 async function load() {
   loading.value = true;
   error.value = false;
+  loadTrend();
   try {
     const [ov, planRes, subs] = await Promise.allSettled([
       getOverview(), getCurrentPlan(), getSubjects()
@@ -223,7 +233,7 @@ onMounted(load);
             {{ trendRise >= 0 ? '↑' : '↓' }} {{ Math.abs(trendRise) }} 分，自 {{ trendLabels[0] }} 起
           </span>
         </div>
-        <div v-if="trendPoints.length < 2" class="chart-empty">有科目作答满 10 题的周数不足 2 周，暂无趋势。</div>
+        <div v-if="trendPoints.length < 2" class="chart-empty">再多做几道题，就能看到趋势</div>
         <div v-else>
           <svg :viewBox="`0 0 ${TW} ${TH}`" class="chart" @mouseleave="hoverIdx = null">
             <g v-for="t in trendGeo.ticks" :key="t.v">
@@ -263,7 +273,6 @@ onMounted(load);
             <span v-for="l in trendLabels" :key="l">{{ l }}</span>
           </div>
         </div>
-        <p class="chart-note">每个周末时点按当时的作答记录重算预估分（口径与首页一致）。若某科目在某周才首次作答满 10 题，该周预估分会跳增，这是综合分按已有科目累加的结果。</p>
       </section>
 
       <section class="panel panel-pad">

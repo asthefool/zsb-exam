@@ -10,6 +10,7 @@ export const getProfile = () => request.get('/user/profile');
 export const updateProfile = (data) => request.put('/user/profile', data);
 export const changePassword = (data) => request.put('/user/password', data);
 export const getOverview = () => request.get('/home/overview');
+export const getTrend = (weeks = 7) => request.get('/home/trend', { params: { weeks } });
 
 // ---- 题库域 ----
 export const getSubjects = () => request.get('/subjects');

@@ -8,7 +8,6 @@ const HALF_LIFE_DAYS = 30;   // 之后每 30 天权重减半
 const RETRY_CREDIT = 1.1;    // 错题回炉答对计 1.1 分（一次做对计 1 分）
 const MIN_SAMPLE = 10;       // 做过的题不足 10 道，不给百分比
 const SUBJECT_FULL = 100;    // 单科满分，综合预估分 = Σ 科目掌握度 × 单科满分
-const TREND_WEEKS = 7;       // 预估分趋势回溯周数（含本周）
 const DAY_MS = 86400000;
 const Q_TYPES = ['single', 'multiple', 'judge'];
 
@@ -95,24 +94,7 @@ function estimateOf(rows) {
   };
 }
 
-// 每周末时点：只使用当时已作答的记录，并以该时刻为「现在」重算预估分（口径与 estimate 相同）
-// 不满足计算条件（无科目达到 MIN_SAMPLE）的周记为 score: null
-function weeklyTrend(subjects, bank, records, now) {
-  const points = [];
-  for (let k = TREND_WEEKS - 1; k >= 0; k--) {
-    const at = now - k * 7 * DAY_MS;
-    const upTo = records.filter((r) => new Date(r.answered_at).getTime() <= at);
-    const est = estimateOf(buildRows(subjects, bank, [], upTo, at));
-    points.push({
-      weeks_ago: k,
-      score: est.evaluated ? est.score : null,
-      evaluated: est.evaluated
-    });
-  }
-  return points;
-}
-
-// 学情口径汇总：科目掌握度、题型章节掌握度、综合预估分、预估分周趋势（首页 / 题库 / 报告共用）
+// 学情口径汇总：科目掌握度、题型章节掌握度、综合预估分（首页 / 题库 / 报告共用）
 async function summary(userId) {
   const [subjects, bank, records, unmastered] = await Promise.all([
     questionDao.listSubjects(),
@@ -124,9 +106,42 @@ async function summary(userId) {
   const rows = buildRows(subjects, bank, unmastered, records, now);
   return {
     subjects: rows,
-    estimate: estimateOf(rows),
-    trend: weeklyTrend(subjects, bank, records, now)
+    estimate: estimateOf(rows)
   };
 }
 
-module.exports = { summary };
+function estimateAt(subjects, records, asOf) {
+  const bySubject = new Map();
+  for (const r of records) {
+    if (!bySubject.has(r.subject_id)) bySubject.set(r.subject_id, []);
+    bySubject.get(r.subject_id).push(r);
+  }
+  let score = 0, evaluated = 0;
+  for (const s of subjects) {
+    const a = aggregate(bySubject.get(s.id) || [], 0, 0, asOf);
+    if (a.mastery !== null) { score += (a.mastery * SUBJECT_FULL) / 100; evaluated++; }
+  }
+  return { score: Math.round(score), evaluated };
+}
+
+// 预估分周趋势：一次查全部作答，内存中按周截断后逐周重算（口径与 summary 的 estimate 相同）
+async function trend(userId, weeks = 7) {
+  const [subjects, records] = await Promise.all([
+    questionDao.listSubjects(), answerDao.listWithQuestion(userId)   // 已按时间升序
+  ]);
+  const now = Date.now(), out = [];
+  for (let k = weeks - 1; k >= 0; k--) {
+    const asOf = now - k * 7 * DAY_MS;
+    const upto = records.filter((r) => new Date(r.answered_at).getTime() <= asOf);
+    const e = estimateAt(subjects, upto, asOf);
+    out.push({
+      weeks_ago: k,
+      as_of: new Date(asOf).toISOString().slice(0, 10),
+      score: e.evaluated ? e.score : null,   // 样本不足的周不给分数
+      evaluated: e.evaluated
+    });
+  }
+  return out;
+}
+
+module.exports = { summary, trend };
