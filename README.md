@@ -28,7 +28,7 @@ zsb-exam/
 │   ├── sql/
 │   │   ├── init.sql                 # 数据库初始化脚本（建库建表 + 种子科目）
 │   │   ├── upgrade-20261015-admin.sql  # 老库升级脚本（管理端补充模块用）
-│   │   └── data-backup-20261015.sql    # 数据库备份文件（结构 + 数据，可直接导入）
+│   │   └── data-backup-*.sql          # 本地数据库备份（由后台生成，不入库）
 │   ├── scripts/
 │   │   ├── init-admin.js    # 创建管理员账号（交互式）
 │   │   ├── import-questions.js
@@ -148,7 +148,7 @@ zsb-exam/
 
 - 后台「数据备份」页一键备份：导出全部业务表的「结构 + 数据」为 SQL 脚本（落 `server/backups/`），支持下载、SHA-256 完整性校验与删除。
 - 恢复方式：`mysql -u root -p --default-character-set=utf8mb4 zsb_exam < 备份文件.sql`（导入前确认目标库可被覆盖）。
-- 工程包内已附一份备份文件 `server/sql/data-backup-20261015.sql`（演示数据快照），保证系统可复现部署。
+- 本仓库不包含数据库备份文件（`server/sql/data-backup-*.sql` 已被 `.gitignore` 忽略）。部署请使用 `server/sql/init.sql` 建库，并通过 `server/scripts/import-questions.js` 导入示例题目。
 - **老库升级**：已按旧版 `init.sql` 建库的，执行 `server/sql/upgrade-20261015-admin.sql` 一次即可补上管理端新表与个人资料字段；全新安装直接执行 `init.sql`。
 
 ## 数据与账号说明（如实声明）
