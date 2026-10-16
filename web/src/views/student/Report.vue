@@ -40,19 +40,18 @@ function masteryOf(id) {
   return mastery[id]?.mastery ?? 0;
 }
 
-// ---- 预估分趋势（示例曲线：按当前预估分回推，页面标注） ----
+// ---- 预估分趋势（后端按周回推：每个周末时点按当时作答重算，口径同预估分；无数据的周不显示） ----
 const trendCount = computed(() => (range.value === '近 7 周' ? 7 : 5));
-const trendPoints = computed(() => {
-  const cur = estimate.value || 240;
-  const start = Math.max(40, cur - 58);
-  const n = trendCount.value;
-  return Array.from({ length: n }, (_, i) => Math.round(start + ((cur - start) * i) / (n - 1)));
-});
-const trendLabels = computed(() => {
-  const n = trendCount.value;
-  return Array.from({ length: n }, (_, i) => (i === n - 1 ? '本周' : `第 ${i + 1} 周`));
-});
-const trendRise = computed(() => trendPoints.value[trendPoints.value.length - 1] - trendPoints.value[0]);
+const trendShown = computed(() =>
+  (overview.value?.mastery?.trend || []).filter((p) => p.score !== null).slice(-trendCount.value)
+);
+const trendPoints = computed(() => trendShown.value.map((p) => p.score));
+const trendLabels = computed(() =>
+  trendShown.value.map((p) => (p.weeks_ago === 0 ? '本周' : `${p.weeks_ago} 周前`))
+);
+const trendRise = computed(() =>
+  trendPoints.value.length >= 2 ? trendPoints.value[trendPoints.value.length - 1] - trendPoints.value[0] : 0
+);
 
 // 源码 Trend 规格：viewBox 560x200，pad 28，三条横线 + 悬停数值
 const TW = 560, TH = 200, TPAD = 28;
@@ -60,6 +59,7 @@ const trendMin = computed(() => Math.max(0, Math.floor((Math.min(...trendPoints.
 const trendMax = computed(() => Math.ceil((Math.max(...trendPoints.value) + 15) / 10) * 10);
 const trendGeo = computed(() => {
   const pts = trendPoints.value;
+  if (pts.length < 2) return { coords: [], ticks: [], line: '' };
   const min = trendMin.value, max = trendMax.value;
   const coords = pts.map((v, i) => [
     TPAD + (i * (TW - TPAD * 2)) / (pts.length - 1),
@@ -218,12 +218,13 @@ onMounted(load);
     <div class="grid-top">
       <section class="panel panel-pad">
         <div class="chart-head">
-          <h2>预估分趋势 <span class="sample-tag">示例</span></h2>
-          <span class="text-xs" :class="trendRise >= 0 ? 'text-ok' : 'text-bad'">
-            示例走势 {{ trendRise >= 0 ? '↑' : '↓' }} {{ Math.abs(trendRise) }} 分
+          <h2>预估分趋势</h2>
+          <span v-if="trendPoints.length >= 2" class="text-xs" :class="trendRise >= 0 ? 'text-ok' : 'text-bad'">
+            {{ trendRise >= 0 ? '↑' : '↓' }} {{ Math.abs(trendRise) }} 分，自 {{ trendLabels[0] }} 起
           </span>
         </div>
-        <div>
+        <div v-if="trendPoints.length < 2" class="chart-empty">有科目作答满 10 题的周数不足 2 周，暂无趋势。</div>
+        <div v-else>
           <svg :viewBox="`0 0 ${TW} ${TH}`" class="chart" @mouseleave="hoverIdx = null">
             <g v-for="t in trendGeo.ticks" :key="t.v">
               <line :x1="TPAD" :x2="TW - TPAD" :y1="t.y" :y2="t.y" stroke="var(--border)" />
@@ -262,7 +263,7 @@ onMounted(load);
             <span v-for="l in trendLabels" :key="l">{{ l }}</span>
           </div>
         </div>
-        <p class="chart-note">⚠ 示例数据：曲线由当前预估分回推生成，并非真实作答记录。接入按周统计的作答数据后再替换为真实趋势。</p>
+        <p class="chart-note">每个周末时点按当时的作答记录重算预估分（口径与首页一致）。若某科目在某周才首次作答满 10 题，该周预估分会跳增，这是综合分按已有科目累加的结果。</p>
       </section>
 
       <section class="panel panel-pad">
@@ -362,7 +363,7 @@ onMounted(load);
   color: var(--text-2);
 }
 .chart-note { margin-top: 12px; font-size: 12px; color: var(--text-3); }
-.sample-tag { font-size: 11px; font-weight: 500; padding: 1px 6px; border-radius: 4px; color: var(--text-2); border: 1px dashed var(--border); vertical-align: middle; }
+.chart-empty { padding: 56px 0; text-align: center; font-size: 13px; color: var(--text-3); }
 .radar {
   margin: 8px auto 0;
   display: block;
