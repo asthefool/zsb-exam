@@ -4,6 +4,7 @@ const { ok, wrap, requireFields, pager } = require('../utils/response');
 const authService = require('../services/authService');
 const userService = require('../services/userService');
 const homeService = require('../services/homeService');
+const masteryService = require('../services/masteryService');
 const { verifyToken } = require('../middleware/auth');
 const { rateLimit } = require('../middleware/rateLimit');
 
@@ -43,6 +44,11 @@ router.put('/user/password', verifyToken, wrap(async (req, res) => {
 
 router.get('/home/overview', verifyToken, wrap(async (req, res) => {
   ok(res, await homeService.overview(req.user.id));
+}));
+
+router.get('/home/trend', verifyToken, wrap(async (req, res) => {
+  const weeks = Math.min(52, Math.max(1, parseInt(req.query.weeks, 10) || 7));
+  ok(res, await masteryService.trend(req.user.id, weeks));
 }));
 
 module.exports = router;
