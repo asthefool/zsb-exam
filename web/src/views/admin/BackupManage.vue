@@ -202,13 +202,13 @@ onMounted(async () => {
       <div class="table-wrap">
         <table class="table">
           <thead>
-            <tr><th>数据表</th><th>表名</th><th>数据行数</th></tr>
+            <tr><th>数据表</th><th>表名</th><th class="num">数据行数</th></tr>
           </thead>
           <tbody>
             <tr v-for="t in overview.tables" :key="t.table">
               <td>{{ TABLE_LABEL[t.table] || t.table }}</td>
               <td class="muted">{{ t.table }}</td>
-              <td>{{ t.rows }} 行</td>
+              <td class="num">{{ t.rows }} 行</td>
             </tr>
             <tr v-if="!overview.tables.length" class="empty">
               <td colspan="3">暂无数据</td>
@@ -233,7 +233,7 @@ onMounted(async () => {
         <table class="table">
           <thead>
             <tr>
-              <th>ID</th><th>备份文件</th><th>文件大小</th><th>数据量</th>
+              <th>ID</th><th>备份文件</th><th class="num">文件大小</th><th class="num">数据量</th>
               <th>创建人</th><th>创建时间</th><th>操作</th>
             </tr>
           </thead>
@@ -241,8 +241,8 @@ onMounted(async () => {
             <tr v-for="b in list" :key="b.id">
               <td class="muted">{{ b.id }}</td>
               <td class="name">{{ b.filename }}</td>
-              <td>{{ formatBytes(b.file_size) }}</td>
-              <td>{{ b.table_count }} 表 / {{ b.row_count }} 行</td>
+              <td class="num">{{ formatBytes(b.file_size) }}</td>
+              <td class="num">{{ b.table_count }} 表 / {{ b.row_count }} 行</td>
               <td>{{ b.created_by_name || '—' }}</td>
               <td class="muted">{{ formatTime(b.created_at) }}</td>
               <td class="cell-actions">
@@ -271,6 +271,7 @@ onMounted(async () => {
 <style scoped>
 .name { font-weight: 500; }
 .cell-actions { white-space: nowrap; }
+.num { text-align: right; font-variant-numeric: tabular-nums; }
 .btn-xs { padding: 6px 14px; font-size: 14px; }
 .pager {
   display: flex;

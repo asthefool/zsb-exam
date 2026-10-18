@@ -122,12 +122,12 @@ onMounted(() => {
 
     <section class="panel" v-loading="loading">
       <div class="toolbar">
-        <el-select v-model="query.role" class="field-w140" aria-label="角色">
+        <el-select v-model="query.role" class="field-w140" placeholder="角色" aria-label="角色">
           <el-option label="全部角色" value="" />
           <el-option label="考生" value="student" />
           <el-option label="管理员" value="admin" />
         </el-select>
-        <el-select v-model="query.status" class="field-w140" aria-label="状态">
+        <el-select v-model="query.status" class="field-w140" placeholder="状态" aria-label="状态">
           <el-option label="全部状态" value="" />
           <el-option label="正常" value="1" />
           <el-option label="禁用" value="0" />

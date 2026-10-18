@@ -145,7 +145,7 @@ onMounted(load);
     <section class="panel panel-pad">
       <div class="flex-between">
         <h2>生成智能复习计划</h2>
-        <span v-if="aiLabel" class="tag tag-warn">{{ aiLabel }}</span>
+        <span v-if="aiLabel" class="tag tag-muted">{{ aiLabel }}</span>
       </div>
       <div class="form">
         <div>
@@ -160,8 +160,8 @@ onMounted(load);
             <span v-if="daysLeft !== null" class="text-sm muted">距离考试还有 {{ daysLeft }} 天</span>
           </div>
         </div>
-        <div>
-          <div class="form-label"><span>目标科目</span><span class="hint">不选则覆盖全部科目</span></div>
+        <div class="form-wide">
+          <div class="form-label inline"><span>目标科目</span><span class="hint">不选则覆盖全部科目</span></div>
           <div class="subject-chips">
             <button
               v-for="s in subjects"
@@ -173,7 +173,7 @@ onMounted(load);
             >{{ form.picked.includes(s.id) ? '✓ ' : '' }}{{ s.name }}</button>
           </div>
         </div>
-        <div>
+        <div class="form-minutes">
           <div class="form-label"><span>每日复习时长</span></div>
           <div class="field-row">
             <div class="stepper">
@@ -184,7 +184,7 @@ onMounted(load);
             <span class="text-sm muted">分钟</span>
           </div>
         </div>
-        <div class="field-row">
+        <div class="field-row form-wide">
           <button class="btn btn-primary" :disabled="generating || !form.exam_date" @click="onGenerate">
             {{ generating ? '生成中…' : '生成计划' }}
           </button>
@@ -241,10 +241,15 @@ onMounted(load);
 <style scoped>
 .form {
   margin-top: 20px;
-  max-width: 560px;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 20px 32px;
+}
+.form-wide { grid-column: 1 / -1; }
+.form-label.inline { justify-content: flex-start; gap: 8px; }
+@media (min-width: 1024px) {
+  .form { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .form-minutes { grid-row: 1; grid-column: 2; }
 }
 .field-row { display: flex; align-items: center; gap: 12px; }
 .field-auto { width: auto; }

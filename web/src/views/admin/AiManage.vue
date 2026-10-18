@@ -53,6 +53,12 @@ const successRate = computed(() => {
   return t ? `${Math.round((stats.overall.success / t) * 100)}%` : '—';
 });
 
+// 超时在表单中以秒展示，提交时换算回毫秒
+const timeoutSec = computed({
+  get: () => Math.round(form.timeout_ms / 1000),
+  set: (v) => { form.timeout_ms = Number(v) * 1000; }
+});
+
 async function loadConfig() {
   try {
     const data = (await adminGetAiConfig()) || {};
@@ -228,27 +234,21 @@ onMounted(async () => {
           </div>
         </div>
 
-        <div class="two-col">
+        <div class="form-grid">
           <div>
             <div class="form-label"><span>模型名称</span></div>
-            <input v-model="form.model" class="field field-w280" placeholder="如 mimo-v2.6-flash、gpt-4o-mini" />
+            <input v-model="form.model" class="field" placeholder="如 mimo-v2.6-flash、gpt-4o-mini" />
           </div>
           <div>
             <div class="form-label"><span>接口地址</span></div>
-            <input v-model="form.base_url" class="field field-w280" placeholder="OpenAI 兼容端点，到 /v1 为止" />
+            <input v-model="form.base_url" class="field" placeholder="OpenAI 兼容端点，到 /v1 为止" />
           </div>
-        </div>
-
-        <div class="two-col">
-          <div>
-            <div class="form-label">
-              <span>API Key</span>
-              <span class="hint">{{ config.api_key_set ? `当前已配置（${config.api_key_masked}）` : '当前未配置' }}</span>
-            </div>
+          <div class="form-wide">
+            <div class="form-label"><span>API Key</span></div>
             <div class="key-row">
               <input
                 v-model="form.api_key"
-                class="field field-w280"
+                class="field"
                 type="password"
                 :placeholder="clearKey ? '保存后将清除密钥' : '留空保持不变，填写则替换'"
                 :disabled="clearKey"
@@ -257,14 +257,18 @@ onMounted(async () => {
                 {{ clearKey ? '取消清除' : '清除密钥' }}
               </button>
             </div>
+            <p class="field-hint">{{ config.api_key_set ? `当前已配置（${config.api_key_masked}）` : '当前未配置' }}</p>
           </div>
           <div>
-            <div class="form-label"><span>单次超时（毫秒）</span></div>
-            <input v-model.number="form.timeout_ms" class="field field-w140" type="number" min="1000" max="600000" />
+            <div class="form-label"><span>单次超时</span></div>
+            <div class="unit-field">
+              <input v-model.number="timeoutSec" class="field" type="number" min="1" max="600" />
+              <span class="unit">秒</span>
+            </div>
           </div>
           <div>
             <div class="form-label"><span>每分钟调用上限</span></div>
-            <input v-model.number="form.rate_limit_per_min" class="field field-w140" type="number" min="1" max="1000" />
+            <input v-model.number="form.rate_limit_per_min" class="field" type="number" min="1" max="1000" />
           </div>
         </div>
 
@@ -305,12 +309,12 @@ onMounted(async () => {
           placeholder="按考生账号或错误信息搜索"
           @keyup.enter="search"
         />
-        <el-select v-model="query.gen_type" class="field-w140" aria-label="功能类型">
+        <el-select v-model="query.gen_type" class="field-w140" placeholder="功能类型" aria-label="功能类型">
           <el-option label="全部类型" value="" />
           <el-option label="错题讲解" value="explain" />
           <el-option label="复习计划" value="plan" />
         </el-select>
-        <el-select v-model="query.status" class="field-w140" aria-label="调用状态">
+        <el-select v-model="query.status" class="field-w140" placeholder="调用状态" aria-label="调用状态">
           <el-option label="全部状态" value="" />
           <el-option label="成功" value="success" />
           <el-option label="失败" value="failed" />
@@ -402,11 +406,19 @@ onMounted(async () => {
   gap: 20px;
   padding: 20px;
 }
-.two-col {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 16px 40px;
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px 24px;
 }
+.form-grid .form-wide { grid-column: 1 / -1; }
+@media (max-width: 767px) {
+  .form-grid { grid-template-columns: minmax(0, 1fr); }
+}
+.field-hint { margin-top: 6px; font-size: 12px; color: var(--text-2); }
+.unit-field { display: flex; align-items: center; gap: 8px; }
+.unit-field .field { flex: 1; min-width: 0; }
+.unit { flex-shrink: 0; font-size: 14px; color: var(--text-2); }
 .btn-row { display: flex; gap: 8px; }
 .type-btn {
   border: 1px solid var(--border);
@@ -420,8 +432,8 @@ onMounted(async () => {
 .type-btn:hover { border-color: rgba(29, 79, 215, 0.6); }
 .type-btn.active { border-color: var(--primary); background: var(--primary-soft); color: var(--primary); }
 .field-w140 { width: 140px; }
-.field-w280 { width: 280px; max-width: 100%; }
 .key-row { display: flex; align-items: center; gap: 8px; }
+.key-row .field { flex: 1; min-width: 0; }
 .config-acts { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
 .alert-ok {
   border-color: rgba(18, 128, 92, 0.2);

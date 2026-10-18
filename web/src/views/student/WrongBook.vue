@@ -212,7 +212,7 @@ onMounted(async () => {
 
     <!-- 筛选 -->
     <div class="panel filter-panel">
-      <div class="seg">
+      <div class="seg status-seg">
         <button
           v-for="t in STATUS_TABS"
           :key="t"
@@ -221,12 +221,12 @@ onMounted(async () => {
           @click="setStatus(t)"
         >{{ t }}</button>
       </div>
-      <div class="chip-row">
-        <button class="chip" :class="{ active: filter.subject_id === '' }" @click="pickSubject('')">全部科目</button>
+      <div class="seg subject-seg">
+        <button class="seg-item" :class="{ active: filter.subject_id === '' }" @click="pickSubject('')">全部科目</button>
         <button
           v-for="s in subjects"
           :key="s.id"
-          class="chip"
+          class="seg-item"
           :class="{ active: filter.subject_id === s.id }"
           @click="pickSubject(s.id)"
         >{{ s.name }}</button>
@@ -244,9 +244,9 @@ onMounted(async () => {
         </div>
         <p class="stem">{{ row.content }}</p>
         <div class="acts">
-          <button class="btn btn-primary" @click="openDetail(row)">查看 / AI 讲解</button>
-          <button class="btn btn-ghost" @click="goPractice(row)">相似题推荐</button>
-          <button class="btn btn-ghost" :disabled="toggling" @click="toggleMastered(row)">
+          <button class="btn btn-view" @click="openDetail(row)">查看 / AI 讲解</button>
+          <button class="btn btn-plain" @click="goPractice(row)">相似题推荐</button>
+          <button class="btn btn-plain" :disabled="toggling" @click="toggleMastered(row)">
             {{ row.mastered ? '取消掌握' : '标记掌握' }}
           </button>
         </div>
@@ -331,13 +331,28 @@ onMounted(async () => {
 }
 .filter-panel {
   display: flex;
-  flex-direction: column;
+  flex-wrap: wrap;
+  align-items: center;
   gap: 12px;
-  padding: 16px;
+  padding: 12px 16px;
 }
-.chip-row { display: flex; flex-wrap: wrap; gap: 6px; }
+.subject-seg { flex-wrap: wrap; }
+.btn-view {
+  background: var(--card);
+  border-color: var(--primary-border);
+  color: var(--primary);
+  padding: 6px 14px;
+}
+.btn-view:hover:not(:disabled) { background: var(--primary-soft); border-color: var(--primary); }
+.btn-plain {
+  background: none;
+  border: none;
+  color: var(--text-2);
+  padding: 6px 10px;
+}
+.btn-plain:hover:not(:disabled) { color: var(--primary); background: var(--primary-soft); }
 @media (max-width: 767px) {
-  /* 手机端筛选区吸顶：全宽铺满，科目单行横向滑动，避免吸顶区过高 */
+  /* 手机端筛选区吸顶：全宽铺满，状态三等分，科目单行横向滑动，避免吸顶区过高 */
   .filter-panel {
     position: sticky;
     top: 0;
@@ -350,29 +365,27 @@ onMounted(async () => {
     border-width: 0 0 1px;
     background: var(--card);
   }
-  .filter-panel .seg {
+  .filter-panel .status-seg {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     width: 100%;
     border-radius: 10px;
   }
-  .filter-panel .seg-item {
+  .filter-panel .status-seg .seg-item {
     width: 100%;
     height: 34px;
     padding: 0;
     text-align: center;
   }
-  .chip-row {
+  .filter-panel .subject-seg {
     flex-wrap: nowrap;
+    max-width: 100%;
     overflow-x: auto;
     scrollbar-width: none;
-    margin: 0 -14px;
-    padding: 0 14px;
+    border-radius: 10px;
   }
-  .chip-row::-webkit-scrollbar { display: none; }
-  .chip-row > * { flex-shrink: 0; }
-  .chip { height: 32px; padding: 0 14px; }
-
+  .filter-panel .subject-seg::-webkit-scrollbar { display: none; }
+  .filter-panel .subject-seg .seg-item { flex-shrink: 0; height: 32px; }
   .list .item { padding: 16px; }
   .list .item .acts {
     display: grid;

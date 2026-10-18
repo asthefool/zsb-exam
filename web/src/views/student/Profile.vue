@@ -17,6 +17,11 @@ const form = reactive({
 const nickCount = computed(() => `${form.nickname.length}/32`);
 const bioCount = computed(() => `${form.bio.length}/200`);
 const avatarChar = computed(() => (user.value.nickname || user.value.username || '同').slice(0, 1));
+const studyDays = computed(() => {
+  const created = user.value.created_at;
+  if (!created) return null;
+  return Math.max(1, Math.floor((Date.now() - new Date(created).getTime()) / 86400000));
+});
 
 const pwd = reactive({ old_password: '', new_password: '', confirm: '' });
 const pwdSaving = ref(false);
@@ -114,33 +119,20 @@ onMounted(load);
 
     <div class="grid-profile">
       <!-- 账号信息 -->
-      <section class="panel">
-        <div class="panel-head"><h2>账号信息</h2></div>
-        <div class="profile-top">
-          <span class="avatar">{{ avatarChar }}</span>
-          <div>
-            <div class="name">{{ user.nickname || user.username || '—' }}</div>
-            <div class="text-xs muted">{{ user.target_school ? `${user.target_school} 备考中` : '备考中' }}</div>
-          </div>
+      <!-- 摘要卡：头像、昵称与备考天数；完整字段在右侧编辑 -->
+      <section class="panel summary-card">
+        <span class="avatar">{{ avatarChar }}</span>
+        <div class="summary-name">{{ user.nickname || user.username || '同学' }}</div>
+        <div class="text-xs muted">@{{ user.username || '—' }}</div>
+        <div class="summary-days">
+          <span class="summary-num">{{ studyDays ?? '—' }}</span>
+          <span class="muted text-sm">{{ studyDays === null ? '注册后开始计算备考天数' : '天备考' }}</span>
         </div>
-        <dl class="info-list">
-          <div class="info-row"><dt>用户名</dt><dd>{{ user.username || '—' }}</dd></div>
-          <div class="info-row"><dt>昵称</dt><dd>{{ user.nickname || '—' }}</dd></div>
-          <div class="info-row"><dt>性别</dt><dd>{{ GENDER_LABEL[user.gender] || '保密' }}</dd></div>
-          <div class="info-row"><dt>手机号</dt><dd>{{ user.phone || '—' }}</dd></div>
-          <div class="info-row"><dt>邮箱</dt><dd>{{ user.email || '—' }}</dd></div>
-          <div class="info-row"><dt>目标院校</dt><dd>{{ user.target_school || '—' }}</dd></div>
-          <div class="info-row"><dt>个性签名</dt><dd class="bio-text">{{ user.bio || '—' }}</dd></div>
-          <div class="info-row">
-            <dt>角色</dt>
-            <dd>
-              <span class="tag" :class="user.role === 'admin' ? 'tag-bad' : 'tag-brand'">
-                {{ user.role === 'admin' ? '管理员' : '考生' }}
-              </span>
-            </dd>
-          </div>
-          <div class="info-row"><dt>注册时间</dt><dd>{{ formatDate(user.created_at) }}</dd></div>
-        </dl>
+        <div class="summary-meta">
+          <span v-if="user.target_school" class="tag tag-brand">{{ user.target_school }}</span>
+          <span class="tag" :class="user.role === 'admin' ? 'tag-bad' : 'tag-muted'">{{ user.role === 'admin' ? '管理员' : '考生' }}</span>
+        </div>
+        <div class="text-xs muted">注册于 {{ formatDate(user.created_at) }}</div>
       </section>
 
       <div class="col-stack">
@@ -234,41 +226,35 @@ onMounted(load);
   .grid-profile { grid-template-columns: 10fr 14fr; }
 }
 .col-stack { display: flex; flex-direction: column; gap: 24px; min-width: 0; }
-.profile-top {
+.summary-card {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 16px;
-  padding: 20px 20px 0;
+  gap: 10px;
+  padding: 32px 24px;
+  text-align: center;
+  align-self: start;
 }
 .avatar {
   display: grid;
   place-items: center;
-  width: 56px;
-  height: 56px;
+  width: 72px;
+  height: 72px;
   border-radius: 999px;
   background: var(--primary-soft);
   color: var(--primary);
-  font-size: 20px;
+  font-size: 26px;
   font-weight: 700;
 }
-.name { font-size: 15px; font-weight: 700; }
-.info-list {
-  margin: 16px 0 0;
-  border-top: 1px solid var(--border);
-}
-.info-row {
+.summary-name { font-size: 18px; font-weight: 700; }
+.summary-days {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 14px 20px;
-  border-bottom: 1px solid var(--border);
-  font-size: 14px;
+  align-items: baseline;
+  gap: 6px;
+  margin-top: 8px;
 }
-.info-row:last-child { border-bottom: none; }
-.info-row dt { color: var(--text-2); margin: 0; flex-shrink: 0; }
-.info-row dd { margin: 0; text-align: right; word-break: break-all; }
-.bio-text { max-width: 260px; line-height: 1.6; }
+.summary-num { font-size: 36px; font-weight: 700; line-height: 1; color: var(--primary); }
+.summary-meta { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
 .profile-form {
   display: flex;
   flex-direction: column;

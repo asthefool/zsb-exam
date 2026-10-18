@@ -1,7 +1,7 @@
 <script setup>
 // 学情报告（对齐 UI 库 Report.tsx 结构）：统计卡 + 预估分趋势 + 能力雷达 + 学习热力图 + AI 诊断
 // 真实数据：答题统计 / 错题分布 / 计划任务；推导部分在页面标注
-import { ref, reactive, computed, onMounted, watch } from 'vue';
+import { ref, reactive, computed, onMounted } from 'vue';
 import { getOverview, getCurrentPlan, getSubjects, getTrend } from '../../api';
 
 const overview = ref(null);
@@ -10,14 +10,14 @@ const subjects = ref([]);
 const mastery = reactive({}); // subject_id -> 掌握度汇总（来自 overview.mastery）
 const loading = ref(true);
 const error = ref(false);
-const range = ref('近 7 周');
+const range = ref('近 7 天'); // 仅作用于热力图
 
 const estimate = computed(() => overview.value?.mastery?.estimate?.score || 0);
 
 const statCards = computed(() => [
   {
     label: '综合预估分', value: estimate.value, unit: '/ 400',
-    note: `目标 330，还差 ${Math.max(0, 330 - estimate.value)} 分`
+    note: estimate.value ? `目标 330，还差 ${Math.max(0, 330 - estimate.value)} 分` : '目标 330，做满 10 题后开始评估'
   },
   {
     label: '累计刷题', value: (overview.value?.total_answers || 0).toLocaleString(), unit: '道',
@@ -41,7 +41,7 @@ function masteryOf(id) {
 }
 
 // ---- 预估分趋势（接口 /home/trend 返回逐周分数；score 为 null 的周不画点） ----
-const trendCount = computed(() => (range.value === '近 7 周' ? 7 : 5));
+const TREND_WEEKS = 7;
 const trendRaw = ref([]);
 const trendShown = computed(() => trendRaw.value.filter((p) => p.score !== null));
 const trendPoints = computed(() => trendShown.value.map((p) => p.score));
@@ -76,12 +76,12 @@ const trendGeo = computed(() => {
 });
 const hoverIdx = ref(null);
 
-// ---- 能力雷达（源码 Radar 规格：240x240，轴标签在外圈 1.2 倍处） ----
+// ---- 能力雷达（源码 Radar 规格：240x240，轴标签在外圈 1.2 倍处）：只放科目维度，正确率见统计卡 ----
 const dims = computed(() => {
   const list = subjects.value.slice(0, 4).map((s) => ({ n: s.name, v: masteryOf(s.id), t: 85 }));
-  list.push({ n: '正确率', v: overview.value?.accuracy || 0, t: 85 });
   return list.length >= 3 ? list : [];
 });
+const hasRadarData = computed(() => dims.value.some((d) => d.v > 0));
 const RC = 120, RR = 86;
 function radarPt(i, k, n) {
   const a = (Math.PI * 2 * i) / n - Math.PI / 2;
@@ -93,14 +93,15 @@ function radarPoly(vals) {
 }
 
 // ---- 学习热力图（源码：grid-flow-col grid-rows-7，格子透明度表示强度） ----
-const heatWeeks = computed(() => (range.value === '近 7 周' ? 7 : 5));
+const heatDays = computed(() => (range.value === '近 7 天' ? 7 : 30));
+const heatCols = computed(() => Math.ceil(heatDays.value / 7));
 const heatmap = computed(() => {
   const map = new Map();
   for (const t of plan.value?.tasks || []) {
     const d = String(t.task_date).slice(0, 10);
     if (t.status === 'done') map.set(d, (map.get(d) || 0) + 1);
   }
-  const n = heatWeeks.value * 7;
+  const n = heatDays.value;
   const cells = [];
   for (let i = n - 1; i >= 0; i--) {
     const d = new Date(Date.now() - i * 86400000);
@@ -158,13 +159,11 @@ function diagTagClass(kind) {
 
 async function loadTrend() {
   try {
-    trendRaw.value = await getTrend(trendCount.value);
+    trendRaw.value = await getTrend(TREND_WEEKS);
   } catch (e) {
     trendRaw.value = [];
   }
 }
-
-watch(range, loadTrend);
 
 async function load() {
   loading.value = true;
@@ -198,7 +197,7 @@ onMounted(load);
       </div>
       <div class="seg">
         <button
-          v-for="r in ['近 7 周', '近 30 天']"
+          v-for="r in ['近 7 天', '近 30 天']"
           :key="r"
           class="seg-item"
           :class="{ active: range === r }"
@@ -233,7 +232,10 @@ onMounted(load);
             {{ trendRise >= 0 ? '↑' : '↓' }} {{ Math.abs(trendRise) }} 分，自 {{ trendLabels[0] }} 起
           </span>
         </div>
-        <div v-if="trendPoints.length < 2" class="chart-empty">再多做几道题，就能看到趋势</div>
+        <div v-if="trendPoints.length < 2" class="chart-empty">
+          <p class="chart-empty-title">再多做几道题，就能看到趋势</p>
+          <p class="chart-empty-sub">每个科目满 10 题后，系统会按周计算预估分</p>
+        </div>
         <div v-else>
           <svg :viewBox="`0 0 ${TW} ${TH}`" class="chart" @mouseleave="hoverIdx = null">
             <g v-for="t in trendGeo.ticks" :key="t.v">
@@ -277,7 +279,11 @@ onMounted(load);
 
       <section class="panel panel-pad">
         <h2>能力雷达</h2>
-        <svg v-if="dims.length" viewBox="0 0 240 240" class="radar">
+        <div v-if="dims.length && !hasRadarData" class="chart-empty">
+          <p class="chart-empty-title">做满 10 题后，这里会显示各科能力分布</p>
+          <p class="chart-empty-sub">虚线为目标线（85 分）</p>
+        </div>
+        <svg v-if="dims.length && hasRadarData" viewBox="0 0 240 240" class="radar">
           <polygon
             v-for="k in [0.25, 0.5, 0.75, 1]"
             :key="k"
@@ -316,7 +322,7 @@ onMounted(load);
     <div class="grid-bottom">
       <section class="panel panel-pad">
         <h2>学习热力图</h2>
-        <div class="heatmap" :style="{ gridTemplateColumns: `repeat(${heatWeeks}, minmax(0, 1fr))` }">
+        <div class="heatmap" :style="{ gridTemplateColumns: `repeat(${heatCols}, minmax(0, 1fr))` }">
           <div
             v-for="c in heatmap"
             :key="c.key"
@@ -372,7 +378,14 @@ onMounted(load);
   color: var(--text-2);
 }
 .chart-note { margin-top: 12px; font-size: 12px; color: var(--text-3); }
-.chart-empty { padding: 56px 0; text-align: center; font-size: 13px; color: var(--text-3); }
+.chart-empty {
+  padding: 40px 16px;
+  border: 1px dashed var(--border);
+  border-radius: 8px;
+  text-align: center;
+}
+.chart-empty-title { font-size: 14px; font-weight: 500; color: var(--text-2); }
+.chart-empty-sub { margin-top: 6px; font-size: 12px; color: var(--text-3); }
 .radar {
   margin: 8px auto 0;
   display: block;

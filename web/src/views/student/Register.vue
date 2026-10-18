@@ -10,6 +10,8 @@ const router = useRouter();
 const form = reactive({ username: '', nickname: '', password: '', confirm: '' });
 const err = reactive({ username: '', password: '', confirm: '' });
 const busy = ref(false);
+const showPwd = ref(false);
+const showConfirm = ref(false);
 
 const nickCount = computed(() => `${form.nickname.length}/32`);
 
@@ -89,33 +91,54 @@ async function onSubmit() {
 
       <div class="auth-field">
         <label class="auth-label" for="reg-password">密码</label>
-        <div class="auth-control plain">
+        <div class="auth-control has-toggle">
           <input
             id="reg-password"
             v-model="form.password"
-            type="password"
+            :type="showPwd ? 'text' : 'password'"
             placeholder="至少 6 位"
             autocomplete="new-password"
             :aria-invalid="err.password ? 'true' : 'false'"
             @blur="check('password')"
             @input="err.password = ''"
           />
+          <button
+            type="button"
+            class="auth-toggle"
+            :aria-label="showPwd ? '隐藏密码' : '显示密码'"
+            :aria-pressed="showPwd"
+            @click="showPwd = !showPwd"
+          >
+            <svg v-if="!showPwd" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1.5 8s2.3-4.5 6.5-4.5S14.5 8 14.5 8 12.2 12.5 8 12.5 1.5 8 1.5 8z" /><circle cx="8" cy="8" r="2" /></svg>
+            <svg v-else viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 2.5l11 11" /><path d="M6.6 4a6.4 6.4 0 011.4-.5c4.2 0 6.5 4.5 6.5 4.5a11 11 0 01-1.9 2.4M4.3 5.3A11 11 0 001.5 8s2.3 4.5 6.5 4.5c1 0 1.9-.3 2.7-.7" /><path d="M6.6 6.7a2 2 0 002.7 2.7" /></svg>
+          </button>
         </div>
         <p v-if="err.password" class="auth-err">{{ err.password }}</p>
       </div>
 
       <div class="auth-field">
         <label class="auth-label" for="reg-confirm">确认密码</label>
-        <div class="auth-control plain">
+        <div class="auth-control has-toggle">
           <input
             id="reg-confirm"
             v-model="form.confirm"
-            type="password"
+            :type="showConfirm ? 'text' : 'password'"
+            placeholder="再次输入密码"
             autocomplete="new-password"
             :aria-invalid="err.confirm ? 'true' : 'false'"
             @blur="check('confirm')"
             @input="err.confirm = ''"
           />
+          <button
+            type="button"
+            class="auth-toggle"
+            :aria-label="showConfirm ? '隐藏密码' : '显示密码'"
+            :aria-pressed="showConfirm"
+            @click="showConfirm = !showConfirm"
+          >
+            <svg v-if="!showConfirm" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1.5 8s2.3-4.5 6.5-4.5S14.5 8 14.5 8 12.2 12.5 8 12.5 1.5 8 1.5 8z" /><circle cx="8" cy="8" r="2" /></svg>
+            <svg v-else viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 2.5l11 11" /><path d="M6.6 4a6.4 6.4 0 011.4-.5c4.2 0 6.5 4.5 6.5 4.5a11 11 0 01-1.9 2.4M4.3 5.3A11 11 0 001.5 8s2.3 4.5 6.5 4.5c1 0 1.9-.3 2.7-.7" /><path d="M6.6 6.7a2 2 0 002.7 2.7" /></svg>
+          </button>
         </div>
         <p v-if="err.confirm" class="auth-err">{{ err.confirm }}</p>
       </div>

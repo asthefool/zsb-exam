@@ -53,11 +53,6 @@ const providerLabel = computed(() => {
   const p = explanation.value?.provider || aiConfig.value?.provider || '';
   return p === 'mock' ? '规则引擎（模拟）' : '真实大模型';
 });
-// llm 模式下 provider 存的是模型名（如 mimo-v2.6-flash），单独展示
-const modelName = computed(() => {
-  const p = explanation.value?.provider || '';
-  return p && p !== 'mock' && p !== 'llm' ? p : '';
-});
 
 function reasonFromError(e) {
   const body = (e && e.response && e.response.data) || e || {};
@@ -150,8 +145,7 @@ onMounted(init);
     <!-- 成功 -->
     <template v-else>
       <div class="source-row">
-        <span class="tag tag-warn">来源：{{ providerLabel }}</span>
-        <span v-if="modelName" class="tag tag-muted">{{ modelName }}</span>
+        <span class="source-text">来源：{{ providerLabel }}</span>
         <span v-if="explanation.cached" class="tag tag-muted">缓存</span>
       </div>
       <div v-if="regenError" class="fail-box mt-3">
@@ -202,6 +196,7 @@ onMounted(init);
 .fail-title { font-size: 14px; font-weight: 500; color: var(--red); }
 .fail-reason { margin-top: 4px; font-size: 14px; color: rgba(192, 53, 43, 0.8); }
 .source-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 12px; }
+.source-text { color: var(--text-3); }
 .sections { margin-top: 16px; display: flex; flex-direction: column; gap: 12px; }
 .section {
   border-radius: 12px;

@@ -195,6 +195,7 @@ onMounted(async () => {
   <div v-loading="loading" class="page-pad">
     <!-- 答题会话 -->
     <template v-if="session">
+      <div class="session-col">
       <div class="page-head">
         <div>
           <h1>{{ session.title }}</h1>
@@ -203,6 +204,10 @@ onMounted(async () => {
         <div class="flex-between" style="gap: 16px">
           <button class="btn btn-ghost" @click="exitSession">退出练习</button>
         </div>
+      </div>
+
+      <div class="progress progress-lg session-progress" role="progressbar" :aria-valuenow="answeredCount" aria-valuemin="0" :aria-valuemax="session.list.length">
+        <div class="fill" :style="{ width: `${(answeredCount / session.list.length) * 100}%` }"></div>
       </div>
 
       <section v-if="current" class="panel panel-pad q-panel">
@@ -257,6 +262,7 @@ onMounted(async () => {
           </div>
         </template>
       </section>
+      </div>
     </template>
 
     <!-- 题库面板 -->
@@ -296,7 +302,7 @@ onMounted(async () => {
               <div class="chapter-main">
                 <div class="chapter-name">{{ t.label }}</div>
                 <div class="progress">
-                  <div class="fill" :style="{ width: `${masteryOf(t.value) ?? 0}%` }"></div>
+                  <div class="fill" :style="{ width: `${chapterOf[t.value]?.coverage ?? 0}%` }"></div>
                 </div>
                 <div class="chapter-meta">
                   覆盖 {{ chapterOf[t.value]?.coverage ?? 0 }}%，已做 {{ chapterOf[t.value]?.answered ?? 0 }} / {{ typeStats[t.value] || 0 }} 题
@@ -314,10 +320,14 @@ onMounted(async () => {
               >继续刷题</button>
             </li>
           </ul>
+          <div class="chapter-foot">
+            <span>未掌握错题 {{ recWrongCount }} 道</span>
+            <button class="btn-text" @click="router.push({ path: '/wrong-book', query: subject ? { subject: subject.id } : {} })">去错题本回炉</button>
+          </div>
         </section>
 
         <!-- 推荐练习 -->
-        <section class="panel align-start">
+        <section class="panel">
           <div class="panel-head">
             <h2>推荐练习</h2>
             <el-select v-model="diff" class="select-sm" aria-label="难度">
@@ -370,7 +380,16 @@ export default { methods: { parseOptions } };
 @media (min-width: 1280px) {
   .grid-bank { grid-template-columns: 1.3fr 1fr; }
 }
-.align-start { align-self: start; }
+.chapter-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 20px;
+  border-top: 1px solid var(--border);
+  font-size: 13px;
+  color: var(--text-2);
+}
 
 /* 章节行 */
 .chapter-row {
@@ -424,8 +443,10 @@ export default { methods: { parseOptions } };
 }
 .select-sm { width: 120px; }
 
-/* 答题会话 */
-.q-panel { padding: 24px; }
+/* 答题会话：内容限制在 760px 居中，避免选项条横跨整屏 */
+.session-col { max-width: 760px; margin: 0 auto; }
+.session-progress { margin-top: 16px; }
+.q-panel { margin-top: 24px; padding: 24px; }
 .q-text {
   margin-top: 12px;
   font-size: 18px;

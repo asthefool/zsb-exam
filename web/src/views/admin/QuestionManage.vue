@@ -7,7 +7,7 @@ import {
   getSubjects, adminListQuestions, adminCreateQuestion,
   adminUpdateQuestion, adminDeleteQuestion, adminQuestionStats
 } from '../../api';
-import { Q_TYPE_LABEL } from '../../constants.js';
+import { Q_TYPE_LABEL, difficultyMeta } from '../../constants.js';
 
 const typeName = Q_TYPE_LABEL;
 const L = 'ABCDEFGH';
@@ -49,7 +49,7 @@ function safeParseOptions(raw) {
 
 const formatAnswer = (row) => {
   if (!row) return '—';
-  if (row.q_type === 'judge') return row.answer === 'true' ? '√' : row.answer === 'false' ? '×' : (row.answer || '—');
+  if (row.q_type === 'judge') return row.answer === 'true' ? '对' : row.answer === 'false' ? '错' : (row.answer || '—');
   return row.answer || '—';
 };
 
@@ -278,7 +278,7 @@ onMounted(async () => {
               <td><span class="tag tag-muted">{{ typeName[q.q_type] || q.q_type }}</span></td>
               <td class="cell-content" :title="q.content">{{ q.content }}</td>
               <td>{{ formatAnswer(q) }}</td>
-              <td>{{ q.difficulty }}</td>
+              <td><span class="tag" :class="difficultyMeta(q.difficulty).cls" :title="`难度 ${q.difficulty}`">{{ difficultyMeta(q.difficulty).label }}</span></td>
               <td>
                 <span class="tag" :class="q.status === 1 ? 'tag-ok' : 'tag-bad'">
                   {{ q.status === 1 ? '启用' : '停用' }}
@@ -350,8 +350,8 @@ onMounted(async () => {
         <div>
           <div class="form-label"><span>{{ form.q_type === 'judge' ? '正确答案' : '正确项' }}</span></div>
           <div v-if="form.q_type === 'judge'" class="btn-row">
-            <button class="type-btn" :class="{ active: form.answer === 'true' }" @click="form.answer = 'true'">正确（√）</button>
-            <button class="type-btn" :class="{ active: form.answer === 'false' }" @click="form.answer = 'false'">错误（×）</button>
+            <button class="type-btn" :class="{ active: form.answer === 'true' }" @click="form.answer = 'true'">对</button>
+            <button class="type-btn" :class="{ active: form.answer === 'false' }" @click="form.answer = 'false'">错</button>
           </div>
           <input
             v-else

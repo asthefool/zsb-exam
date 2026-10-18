@@ -10,7 +10,7 @@
   --radius-xs: 6px;
   --text: #0f1a2b;
   --text-2: #5b6779;
-  --text-3: #8a94a6;
+  --text-3: #667085;
   --primary: #1d4fd7;
   --primary-soft: #eaf0ff;
   --primary-border: rgba(29, 79, 215, 0.2);
@@ -107,6 +107,8 @@ button:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
 .page-head h1 { font-size: 24px; font-weight: 700; letter-spacing: -0.025em; line-height: 1.25; }
 .page-head .sub { margin-top: 4px; font-size: 14px; color: var(--text-2); }
 .page-pad > * + * { margin-top: 24px; }
+/* .row-list 自带 margin: 0，会覆盖上一条规则；页面直接子级的列表需要保留页面节奏间距 */
+.page-pad > .row-list { margin-top: 24px; }
 
 /* ---- 统计卡（源码 Stat） ---- */
 .stat-grid {
@@ -243,7 +245,7 @@ button:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
   outline: none;
   transition: border-color 0.15s, box-shadow 0.15s;
 }
-.field::placeholder { color: rgba(91, 103, 121, 0.6); }
+.field::placeholder { color: var(--text-3); }
 .field:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(29, 79, 215, 0.15); }
 textarea.field { resize: vertical; }
 .form-label {
@@ -268,6 +270,8 @@ textarea.field { resize: vertical; }
 }
 .panel-head h2 { font-size: 15px; font-weight: 700; }
 .panel-head .extra { font-size: 12px; color: var(--text-2); }
+/* 卡片标题统一规格：面板内的 h2 与 panel-head 同字号，不再出现大小混用 */
+.panel h2 { font-size: 15px; font-weight: 700; line-height: 1.4; }
 
 /* ---- 行列表（源码 ul > li border-b px-5 py-4） ---- */
 .row-list { list-style: none; margin: 0; padding: 0; }
@@ -332,6 +336,10 @@ textarea.field { resize: vertical; }
 .table td { padding: 14px 16px; border-bottom: 1px solid var(--border); }
 .table tbody tr:hover { background: rgba(245, 247, 251, 0.6); }
 .table .empty td { padding: 56px 0; text-align: center; color: var(--text-2); }
+/* 行内操作按钮之间留出间距；删除按钮与常用按钮之间再拉开，降低误点 */
+.table .cell-actions > * + * { margin-left: 8px; }
+.table .cell-actions > .btn-danger { margin-left: 16px; }
+.nowrap { white-space: nowrap; }
 
 /* ---- 提示条（源码 Alert） ---- */
 .alert {
@@ -457,7 +465,7 @@ textarea.field { resize: vertical; }
 .el-select__wrapper.is-focused { box-shadow: 0 0 0 1px var(--primary) inset, 0 0 0 3px rgba(29, 79, 215, 0.15); }
 .el-select__wrapper.is-disabled { background: var(--bg); box-shadow: 0 0 0 1px var(--border) inset; }
 .el-select__selected-item { color: var(--text); }
-.el-select__placeholder { color: rgba(91, 103, 121, 0.6); }
+.el-select__placeholder { color: var(--text-3); }
 .el-select__caret { color: var(--text-2); }
 .el-select-dropdown { border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 8px 24px rgba(15, 26, 43, 0.12); padding: 4px; }
 .el-select-dropdown__item { height: 34px; line-height: 34px; padding: 0 12px; border-radius: 6px; font-size: 14px; color: var(--text); }

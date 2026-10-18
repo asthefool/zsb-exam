@@ -161,11 +161,11 @@ onMounted(async () => {
           placeholder="按考生账号或题干搜索"
           @keyup.enter="search"
         />
-        <el-select v-model="query.subject_id" class="field-w140" aria-label="科目">
+        <el-select v-model="query.subject_id" class="field-w140" placeholder="科目" aria-label="科目">
           <el-option label="全部科目" value="" />
           <el-option v-for="s in subjects" :key="s.id" :label="s.name" :value="String(s.id)" />
         </el-select>
-        <el-select v-model="query.mastered" class="field-w140" aria-label="掌握状态">
+        <el-select v-model="query.mastered" class="field-w140" placeholder="掌握状态" aria-label="掌握状态">
           <el-option label="全部状态" value="" />
           <el-option label="未掌握" value="0" />
           <el-option label="已掌握" value="1" />
@@ -192,7 +192,7 @@ onMounted(async () => {
               <td class="muted">{{ w.id }}</td>
               <td class="name">{{ w.nickname || w.username }}</td>
               <td class="cell-content" :title="w.content">{{ brief(w.content) }}</td>
-              <td>{{ w.subject_name || '—' }}</td>
+              <td class="nowrap">{{ w.subject_name || '—' }}</td>
               <td><span class="tag tag-muted">{{ typeName[w.q_type] || w.q_type }}</span></td>
               <td>{{ w.wrong_count }} 次</td>
               <td class="muted">{{ formatTime(w.last_wrong_at) }}</td>

@@ -1,11 +1,33 @@
 <script setup>
 // 登录/注册页壳：深色分栏版式（左侧品牌区 + 右侧表单区），表单控件样式统一在此定义
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 
 defineProps({
   title: { type: String, required: true },
   sub: { type: String, required: true }
 });
+
+const previewRef = ref(null);
+const PREVIEW_TILT = 6;
+
+function onPreviewMove(e) {
+  const el = previewRef.value;
+  const rect = el.getBoundingClientRect();
+  const x = e.clientX - rect.left;
+  const y = e.clientY - rect.top;
+  const px = x / rect.width - 0.5;
+  const py = y / rect.height - 0.5;
+  el.style.transform = `perspective(600px) rotateX(${-py * PREVIEW_TILT}deg) rotateY(${px * PREVIEW_TILT}deg) translateZ(12px)`;
+  el.style.boxShadow = '0 40px 70px -18px rgba(0, 0, 0, 0.55)';
+  el.style.backgroundImage = `radial-gradient(circle at ${x}px ${y}px, rgba(255, 255, 255, 0.6), transparent 60%)`;
+}
+
+function onPreviewLeave() {
+  const el = previewRef.value;
+  el.style.transform = '';
+  el.style.boxShadow = '';
+  el.style.backgroundImage = '';
+}
 
 /* ---- 左侧产品示意数据（纯展示，示例数据） ---- */
 const todayText = computed(() => {
@@ -17,9 +39,10 @@ const tasks = [
   { name: '高等数学 · 极限与连续', sub: '刷题 20 道，正确率 85%', meta: '38 分钟', status: 'done' },
   { name: '大学英语 · 阅读理解', sub: '精读 2 篇', meta: '40 分钟', status: 'done' },
   { name: '错题复盘', sub: '昨日错题 8 道', meta: '15 分钟', status: 'done' },
-  { name: '计算机基础 · 操作系统', sub: '进行中，已做 9 / 15 题', meta: '进行中', status: 'doing' },
-  { name: '大学语文 · 古诗文默写', sub: '20 句', meta: '20 分钟', status: 'todo' }
+  { name: '计算机基础 · 操作系统', sub: '进行中，已做 9 / 15 题', meta: '进行中', status: 'doing' }
 ];
+const doneCount = tasks.filter((t) => t.status === 'done').length;
+const donePercent = Math.round((doneCount / tasks.length) * 100);
 
 const weak = [
   { name: '定积分', rate: 42 },
@@ -46,15 +69,15 @@ const weak = [
         </div>
 
         <div>
-          <div class="preview" role="img" aria-label="今日计划界面示意：5 项任务已完成 3 项，薄弱知识点为定积分、定语从句、进程调度">
+          <div ref="previewRef" class="preview" role="img" :aria-label="`今日计划界面示意：${tasks.length} 项任务已完成 ${doneCount} 项，薄弱知识点为定积分、定语从句、进程调度`" @mousemove="onPreviewMove" @mouseleave="onPreviewLeave">
             <div class="pv-head">
               <div>
                 <div class="pv-title">今日计划</div>
                 <div class="pv-sub">{{ todayText }}</div>
               </div>
-              <div class="pv-count"><strong>3</strong> / 5 项已完成</div>
+              <div class="pv-count"><strong>{{ doneCount }}</strong> / {{ tasks.length }} 项已完成</div>
             </div>
-            <div class="bar"><i style="width: 60%"></i></div>
+            <div class="bar"><i :style="{ width: donePercent + '%' }"></i></div>
 
             <ul class="tasks">
               <li v-for="t in tasks" :key="t.name" class="task" :class="t.status">
@@ -149,7 +172,7 @@ const weak = [
 .brand-panel {
   display: flex;
   flex-direction: column;
-  padding-block: 48px 36px;
+  padding-block: clamp(24px, 4vh, 48px) clamp(20px, 3vh, 36px);
   padding-left: max(clamp(32px, 5vw, 72px), env(safe-area-inset-left, 0px));
   padding-right: max(clamp(32px, 5vw, 72px), env(safe-area-inset-right, 0px));
   background-color: var(--navy);
@@ -172,12 +195,12 @@ const weak = [
   flex: 1;
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  gap: 40px;
+  justify-content: safe center;
+  gap: clamp(20px, 4vh, 40px);
   width: 100%;
   max-width: 520px;
   min-width: 0;
-  padding-block: 40px;
+  padding-block: clamp(16px, 3vh, 40px);
 }
 /* 标语标题：高级版 h1 样式（思源宋体 500，字距 0.14em） */
 h1 {
@@ -200,6 +223,8 @@ h1 span { display: block; }
   background: var(--surface);
   box-shadow: 0 24px 48px rgba(0, 0, 0, 0.28);
   padding: 20px;
+  transition: transform 0.2s ease-out, box-shadow 0.3s ease;
+  will-change: transform;
 }
 .pv-head {
   display: flex;
@@ -295,9 +320,9 @@ h1 span { display: block; }
 /* ---------- 右侧表单区 ---------- */
 .form-panel {
   display: flex;
-  align-items: center;
+  align-items: safe center;
   justify-content: center;
-  padding-block: 48px;
+  padding-block: clamp(24px, 5vh, 48px);
   padding-left: max(clamp(16px, 4vw, 48px), env(safe-area-inset-left, 0px));
   padding-right: max(clamp(16px, 4vw, 48px), env(safe-area-inset-right, 0px));
   background: var(--bg);
@@ -312,7 +337,7 @@ h2 {
   color: var(--ink);
 }
 .sub { margin: 8px 0 32px; color: var(--ink-2); }
-.auth-foot { text-align: center; color: var(--ink-2); }
+.auth-foot { margin-top: 24px; text-align: center; color: var(--ink-2); }
 
 .form-body :deep(.auth-field + .auth-field) { margin-top: 20px; }
 .form-body :deep(.auth-label) {
