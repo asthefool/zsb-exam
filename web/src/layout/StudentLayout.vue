@@ -66,6 +66,28 @@ const today = (() => {
 const nickname = computed(() => userStore.profile?.nickname || userStore.profile?.username || '同学');
 const avatarChar = computed(() => nickname.value.slice(0, 1));
 
+const goalRef = ref(null);
+const GOAL_TILT = 15;
+
+function onGoalMove(e) {
+  const el = goalRef.value;
+  const rect = el.getBoundingClientRect();
+  const x = e.clientX - rect.left;
+  const y = e.clientY - rect.top;
+  const px = x / rect.width - 0.5;
+  const py = y / rect.height - 0.5;
+  el.style.transform = `perspective(500px) rotateX(${-py * GOAL_TILT}deg) rotateY(${px * GOAL_TILT}deg) translateZ(12px)`;
+  el.style.boxShadow = '0 24px 40px -14px rgba(15, 26, 43, 0.3)';
+  el.style.backgroundImage = `radial-gradient(circle at ${x}px ${y}px, rgba(255, 255, 255, 0.7), transparent 70%)`;
+}
+
+function onGoalLeave() {
+  const el = goalRef.value;
+  el.style.transform = '';
+  el.style.boxShadow = '';
+  el.style.backgroundImage = '';
+}
+
 function go(path) {
   if (route.path !== path) {
     router.push(path);
@@ -100,7 +122,7 @@ function onLogout() {
           {{ n.label }}
         </button>
       </nav>
-      <div class="goal-card">
+      <div class="goal-card" ref="goalRef" @mousemove="onGoalMove" @mouseleave="onGoalLeave">
         <div class="goal-label">当前目标</div>
         <div class="goal-title">计算机科学与技术</div>
         <div class="goal-sub">本省理工类，2027 年统考</div>
@@ -231,6 +253,8 @@ function onLogout() {
   border-radius: 12px;
   background: var(--bg);
   padding: 16px;
+  transition: transform 0.2s ease-out, box-shadow 0.3s ease;
+  will-change: transform;
 }
 @media (min-width: 1024px) {
   .goal-card { display: block; }
