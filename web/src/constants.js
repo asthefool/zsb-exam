@@ -8,6 +8,14 @@ export const Q_TYPE_LABEL = {
   judge: '判断'
 };
 
+// 难度 1-5 → 三档展示，与智能题库推荐练习（1/2/3 = 简单/中等/困难）口径一致
+export function difficultyMeta(d) {
+  const n = Number(d);
+  if (n <= 1) return { label: '简单', cls: 'tag-ok' };
+  if (n === 2) return { label: '中等', cls: 'tag-warn' };
+  return { label: '困难', cls: 'tag-bad' };
+}
+
 export const GENDER_LABEL = {
   secret: '保密',
   male: '男',

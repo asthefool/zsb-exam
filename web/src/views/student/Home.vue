@@ -8,6 +8,7 @@ import {
   getWrongQuestions, submitAnswer, checkInTask
 } from '../../api';
 import { useUserStore } from '../../stores/user';
+import { difficultyMeta } from '../../constants';
 
 const router = useRouter();
 const userStore = useUserStore();
@@ -26,6 +27,7 @@ const daily = ref(null);
 const dailyResult = ref(null);
 const dailyPicked = ref(null); // 单选/判断：选中的 key
 const dailyLoading = ref(false);
+const dailyDiff = computed(() => difficultyMeta(daily.value?.difficulty ?? 2));
 
 const nickname = computed(() => userStore.profile?.nickname || userStore.profile?.username || '同学');
 
@@ -274,7 +276,8 @@ onMounted(load);
         </div>
         <div class="m-hero-right">
           <div class="m-hero-label">距离考试</div>
-          <div class="m-hero-days">{{ examInfo ? examInfo.daysLeft : '—' }}<small>天</small></div>
+          <div v-if="examInfo" class="m-hero-days">{{ examInfo.daysLeft }}<small>天</small></div>
+          <div v-else class="m-hero-days-empty">未设置</div>
           <div class="m-hero-sub">连续打卡 {{ streak }} 天</div>
         </div>
       </div>
@@ -313,7 +316,7 @@ onMounted(load);
           <span class="value">{{ estimate }}</span>
           <span class="unit">/ 400</span>
         </div>
-        <div class="note">由正确率推估</div>
+        <div class="note">{{ estimate ? '由正确率推估' : '做满 10 题后开始评估' }}</div>
       </div>
       <div class="panel stat-card">
         <div class="label">连续打卡</div>
@@ -379,7 +382,7 @@ onMounted(load);
         <div class="bar-labels">
           <span v-for="d in weekBars" :key="d.key" class="bar-label">{{ d.label }}</span>
         </div>
-        <p v-if="weekHours === 0" class="bar-empty">本周还没有学习记录</p>
+        <p v-if="weekHours === 0" class="bar-empty">本周还没有学习记录，完成第一项今日任务后，柱状图会在这里开始累计</p>
       </section>
     </div>
 
@@ -432,7 +435,7 @@ onMounted(load);
     <section class="panel panel-pad m-daily">
       <div class="flex-between">
         <h2>每日一题</h2>
-        <span class="tag tag-warn">难度 {{ daily?.difficulty ?? 2 }}</span>
+        <span class="tag" :class="dailyDiff.cls">{{ dailyDiff.label }}</span>
       </div>
       <template v-if="daily">
         <p class="q-text">{{ daily.content }}</p>
@@ -535,6 +538,12 @@ onMounted(load);
     line-height: 1.2;
   }
   .m-hero-days small { margin-left: 4px; font-size: 16px; font-weight: 400; }
+  .m-hero-days-empty {
+    margin-top: 8px;
+    font-size: 16px;
+    font-weight: 500;
+    line-height: 1.4;
+  }
   .m-hero-sub { margin-top: 6px; font-size: 12px; color: rgba(255, 255, 255, 0.8); }
   .m-hero-foot {
     display: flex;
