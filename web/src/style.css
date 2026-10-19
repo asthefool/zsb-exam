@@ -14,7 +14,7 @@
   --primary: #1d4fd7;
   --primary-soft: #eaf0ff;
   --primary-border: rgba(29, 79, 215, 0.2);
-  --green: #12805c;
+  --green: #0f7352;
   --green-soft: #e4f5ee;
   --red: #c0352b;
   --red-soft: #fcebe9;
@@ -168,6 +168,7 @@ button:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
 }
 .btn-danger:hover:not(:disabled) { background: var(--red-soft); }
 .btn-block { width: 100%; padding: 10px 16px; font-weight: 500; }
+.btn-xs { padding: 4px 12px; font-size: 12px; }
 .btn-text {
   background: none;
   border: none;
@@ -424,6 +425,7 @@ textarea.field { resize: vertical; }
   font-weight: 700;
 }
 .el-drawer__body { padding: 20px 24px; }
+.el-drawer__footer { padding: 16px 24px; border-top: 1px solid var(--border); display: flex; gap: 8px; }
 .el-message-box {
   border: none;
   border-radius: 12px;

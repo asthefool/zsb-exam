@@ -65,7 +65,14 @@ function onLogout() {
   border-bottom: 1px solid var(--border);
 }
 @media (min-width: 1024px) {
-  .aside { min-height: 100vh; border-bottom: none; border-right: 1px solid var(--border); }
+  .aside {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    border-bottom: none;
+    border-right: 1px solid var(--border);
+  }
 }
 .brand {
   padding: 20px 24px;

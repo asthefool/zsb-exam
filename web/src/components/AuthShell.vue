@@ -426,6 +426,13 @@ h2 {
 .auth-foot :deep(.auth-link) { font-weight: 500; color: var(--link); text-decoration: none; }
 .auth-foot :deep(.auth-link:hover) { text-decoration: underline; }
 
+/* 矮屏（笔记本常见视口）：收起示意卡片中的薄弱知识点，压缩标题行高，避免左栏溢出出现滚动条 */
+@media (min-width: 961px) and (max-height: 860px) {
+  .weak { display: none; }
+  h1 { line-height: 1.4; }
+  .brand-main { gap: 20px; }
+}
+
 /* 窄屏：收起左侧品牌区 */
 @media (max-width: 960px) {
   .auth-shell { grid-template-columns: minmax(0, 1fr); }

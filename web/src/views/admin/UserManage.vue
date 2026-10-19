@@ -194,7 +194,6 @@ onMounted(() => {
 .field-w140 { width: 140px; }
 .name { font-weight: 500; white-space: nowrap; }
 .cell-actions { white-space: nowrap; }
-.btn-xs { padding: 6px 14px; font-size: 14px; }
 .btn-ok {
   background: var(--card);
   border-color: rgba(18, 128, 92, 0.3);
