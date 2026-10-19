@@ -272,7 +272,6 @@ onMounted(async () => {
 .name { font-weight: 500; }
 .cell-actions { white-space: nowrap; }
 .num { text-align: right; font-variant-numeric: tabular-nums; }
-.btn-xs { padding: 6px 14px; font-size: 14px; }
 .pager {
   display: flex;
   align-items: center;

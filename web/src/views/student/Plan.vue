@@ -321,5 +321,4 @@ onMounted(load);
 .task-text { flex: 1; font-size: 14px; }
 .task-text.done { color: var(--text-2); text-decoration: line-through; }
 .done-mark { font-size: 12px; font-weight: 500; color: var(--green); flex-shrink: 0; }
-.btn-xs { padding: 4px 12px; font-size: 12px; }
 </style>

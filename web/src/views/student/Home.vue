@@ -382,7 +382,10 @@ onMounted(load);
         <div class="bar-labels">
           <span v-for="d in weekBars" :key="d.key" class="bar-label">{{ d.label }}</span>
         </div>
-        <p v-if="weekHours === 0" class="bar-empty">本周还没有学习记录，完成第一项今日任务后，柱状图会在这里开始累计</p>
+        <div v-if="weekHours === 0" class="bar-empty">
+          <p>本周还没有学习记录，完成第一项今日任务后，柱状图会在这里开始累计</p>
+          <button class="btn btn-ghost btn-xs mt-3" @click="router.push('/practice')">去做一组题</button>
+        </div>
       </section>
     </div>
 
@@ -728,7 +731,6 @@ onMounted(load);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.btn-xs { padding: 4px 12px; font-size: 12px; }
 
 /* 每日一题 */
 .q-text {

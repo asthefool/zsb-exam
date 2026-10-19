@@ -2,7 +2,10 @@
 // 学情报告（对齐 UI 库 Report.tsx 结构）：统计卡 + 预估分趋势 + 能力雷达 + 学习热力图 + AI 诊断
 // 真实数据：答题统计 / 错题分布 / 计划任务；推导部分在页面标注
 import { ref, reactive, computed, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
 import { getOverview, getCurrentPlan, getSubjects, getTrend } from '../../api';
+
+const router = useRouter();
 
 const overview = ref(null);
 const plan = ref(null);
@@ -235,6 +238,7 @@ onMounted(load);
         <div v-if="trendPoints.length < 2" class="chart-empty">
           <p class="chart-empty-title">再多做几道题，就能看到趋势</p>
           <p class="chart-empty-sub">每个科目满 10 题后，系统会按周计算预估分</p>
+          <button class="btn btn-ghost btn-xs mt-3" @click="router.push('/practice')">去做一组题</button>
         </div>
         <div v-else>
           <svg :viewBox="`0 0 ${TW} ${TH}`" class="chart" @mouseleave="hoverIdx = null">
@@ -322,7 +326,7 @@ onMounted(load);
     <div class="grid-bottom">
       <section class="panel panel-pad">
         <h2>学习热力图</h2>
-        <div class="heatmap" :style="{ gridTemplateColumns: `repeat(${heatCols}, minmax(0, 1fr))` }">
+        <div class="heatmap" :style="{ gridTemplateColumns: `repeat(${heatCols}, 18px)` }">
           <div
             v-for="c in heatmap"
             :key="c.key"
@@ -410,8 +414,10 @@ onMounted(load);
   grid-auto-flow: column;
   gap: 6px;
 }
+.heatmap { justify-content: start; }
 .heat-cell {
-  aspect-ratio: 1;
+  width: 18px;
+  height: 18px;
   border-radius: 3px;
   background: var(--primary);
 }

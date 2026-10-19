@@ -416,7 +416,6 @@ onMounted(async () => {
   white-space: nowrap;
 }
 .cell-actions { white-space: nowrap; }
-.btn-xs { padding: 6px 14px; font-size: 14px; }
 .pager {
   display: flex;
   align-items: center;

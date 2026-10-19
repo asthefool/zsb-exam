@@ -277,7 +277,6 @@ onMounted(async () => {
 .field-w140 { width: 140px; }
 .name { font-weight: 500; white-space: nowrap; }
 .cell-actions { white-space: nowrap; }
-.btn-xs { padding: 6px 12px; font-size: 13px; }
 .toolbar {
   display: flex;
   flex-wrap: wrap;

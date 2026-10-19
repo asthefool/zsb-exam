@@ -231,7 +231,6 @@ onMounted(async () => {
 .name { font-weight: 500; white-space: nowrap; }
 .cell-content { max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .cell-actions { white-space: nowrap; }
-.btn-xs { padding: 6px 14px; font-size: 14px; }
 .toolbar {
   display: flex;
   flex-wrap: wrap;

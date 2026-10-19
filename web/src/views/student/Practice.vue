@@ -403,7 +403,7 @@ export default { methods: { parseOptions } };
 .chapter-name { font-size: 14px; font-weight: 500; }
 .chapter-main .progress { margin-top: 8px; }
 .chapter-meta { margin-top: 6px; font-size: 12px; color: var(--text-2); }
-.chapter-acc { width: 64px; text-align: right; }
+.chapter-acc { min-width: 64px; text-align: right; white-space: nowrap; }
 .acc-num { font-size: 18px; font-weight: 700; }
 .acc-num.bad { color: var(--red); }
 .acc-label { font-size: 12px; color: var(--text-2); }

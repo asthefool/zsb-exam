@@ -348,7 +348,7 @@ onMounted(async () => {
 .exam-title-row { display: flex; align-items: center; gap: 8px; }
 .exam-title { font-size: 15px; font-weight: 500; }
 .exam-meta { margin-top: 6px; font-size: 12px; color: var(--text-2); }
-.exam-score { text-align: right; }
+.exam-score { min-width: 120px; text-align: right; }
 .score-num { font-size: 18px; font-weight: 700; }
 .score-unit { font-size: 12px; font-weight: 400; color: var(--text-2); }
 
@@ -367,6 +367,8 @@ onMounted(async () => {
   display: grid;
   gap: 24px;
   grid-template-columns: 1fr;
+  max-width: 1000px;
+  margin: 0 auto;
 }
 @media (min-width: 1024px) {
   .grid-exam { grid-template-columns: 1fr 240px; }
