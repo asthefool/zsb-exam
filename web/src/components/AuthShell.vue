@@ -1,443 +1,522 @@
 <script setup>
-// 登录/注册页壳：深色分栏版式（左侧品牌区 + 右侧表单区），表单控件样式统一在此定义
-import { computed, ref } from 'vue';
-
+// 登录/注册统一基础壳：全屏沉浸流光背景 + 悬浮质感毛玻璃交互卡片（Glassmorphism）
 defineProps({
   title: { type: String, required: true },
   sub: { type: String, required: true }
 });
-
-const previewRef = ref(null);
-const PREVIEW_TILT = 6;
-
-function onPreviewMove(e) {
-  const el = previewRef.value;
-  const rect = el.getBoundingClientRect();
-  const x = e.clientX - rect.left;
-  const y = e.clientY - rect.top;
-  const px = x / rect.width - 0.5;
-  const py = y / rect.height - 0.5;
-  el.style.transform = `perspective(600px) rotateX(${-py * PREVIEW_TILT}deg) rotateY(${px * PREVIEW_TILT}deg) translateZ(12px)`;
-  el.style.boxShadow = '0 40px 70px -18px rgba(0, 0, 0, 0.55)';
-  el.style.backgroundImage = `radial-gradient(circle at ${x}px ${y}px, rgba(255, 255, 255, 0.6), transparent 60%)`;
-}
-
-function onPreviewLeave() {
-  const el = previewRef.value;
-  el.style.transform = '';
-  el.style.boxShadow = '';
-  el.style.backgroundImage = '';
-}
-
-/* ---- 左侧产品示意数据（纯展示，示例数据） ---- */
-const todayText = computed(() => {
-  const d = new Date();
-  return `${d.getMonth() + 1}月${d.getDate()}日 周${'日一二三四五六'[d.getDay()]}`;
-});
-
-const tasks = [
-  { name: '高等数学 · 极限与连续', sub: '刷题 20 道，正确率 85%', meta: '38 分钟', status: 'done' },
-  { name: '大学英语 · 阅读理解', sub: '精读 2 篇', meta: '40 分钟', status: 'done' },
-  { name: '错题复盘', sub: '昨日错题 8 道', meta: '15 分钟', status: 'done' },
-  { name: '计算机基础 · 操作系统', sub: '进行中，已做 9 / 15 题', meta: '进行中', status: 'doing' }
-];
-const doneCount = tasks.filter((t) => t.status === 'done').length;
-const donePercent = Math.round((doneCount / tasks.length) * 100);
-
-const weak = [
-  { name: '定积分', rate: 42 },
-  { name: '定语从句', rate: 55 },
-  { name: '进程调度', rate: 61 }
-];
 </script>
 
 <template>
-  <div class="auth-shell">
-    <aside class="brand-panel">
-      <div class="logo">
-        <div class="logo-name">专升本<span>智能备考</span></div>
-      </div>
+  <div class="auth-root">
+    <!-- 沉浸式动态弥散光斑背景层 -->
+    <div class="glow-bg" aria-hidden="true">
+      <div class="orb orb-1"></div>
+      <div class="orb orb-2"></div>
+      <div class="orb orb-3"></div>
+      <div class="mesh-grid"></div>
+    </div>
 
-      <div class="brand-main">
-        <div>
-          <h1>
-            <span>刷题练习</span>
-            <span>错题诊断</span>
-            <span>计划执行</span>
-          </h1>
-          <p class="lede">AI 根据你的答题轨迹，每天排好最该学的内容，让每一小时都用在刀刃上。</p>
+    <!-- 页面核心内容容器 -->
+    <main class="auth-container">
+      <!-- 顶部品牌 Header -->
+      <header class="brand-header">
+        <div class="brand-badge">
+          <span class="badge-dot"></span>
+          <span class="badge-text">专升本智能备考 · AI 提分闭环</span>
         </div>
-
-        <div>
-          <div ref="previewRef" class="preview" role="img" :aria-label="`今日计划界面示意：${tasks.length} 项任务已完成 ${doneCount} 项，薄弱知识点为定积分、定语从句、进程调度`" @mousemove="onPreviewMove" @mouseleave="onPreviewLeave">
-            <div class="pv-head">
-              <div>
-                <div class="pv-title">今日计划</div>
-                <div class="pv-sub">{{ todayText }}</div>
-              </div>
-              <div class="pv-count"><strong>{{ doneCount }}</strong> / {{ tasks.length }} 项已完成</div>
-            </div>
-            <div class="bar"><i :style="{ width: donePercent + '%' }"></i></div>
-
-            <ul class="tasks">
-              <li v-for="t in tasks" :key="t.name" class="task" :class="t.status">
-                <svg v-if="t.status === 'done'" viewBox="0 0 20 20" aria-hidden="true">
-                  <circle cx="10" cy="10" r="9" fill="var(--primary)" />
-                  <path d="M6 10.4l2.6 2.6L14 7.6" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
-                </svg>
-                <svg v-else-if="t.status === 'doing'" viewBox="0 0 20 20" aria-hidden="true">
-                  <circle cx="10" cy="10" r="8.2" fill="none" stroke="var(--primary)" stroke-width="1.8" />
-                  <circle cx="10" cy="10" r="3.4" fill="var(--primary)" />
-                </svg>
-                <svg v-else viewBox="0 0 20 20" aria-hidden="true">
-                  <circle cx="10" cy="10" r="8.2" fill="none" stroke="var(--line-strong)" stroke-width="1.8" />
-                </svg>
-                <div>
-                  <div class="t-name">{{ t.name }}</div>
-                  <div class="t-sub">{{ t.sub }}</div>
-                </div>
-                <div class="t-meta">{{ t.meta }}</div>
-              </li>
-            </ul>
-
-            <div class="weak">
-              <div class="weak-label">近期薄弱知识点 · 正确率</div>
-              <div v-for="w in weak" :key="w.name" class="weak-row" :class="{ low: w.rate < 50 }">
-                <span>{{ w.name }}</span>
-                <div class="bar"><i :style="{ width: w.rate + '%' }"></i></div>
-                <span class="num">{{ w.rate }}%</span>
-              </div>
-            </div>
+        <div class="logo-box">
+          <div class="logo-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none">
+              <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+              <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+              <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
           </div>
-          <p class="caption">产品界面示意，数据仅为示例</p>
+          <h1 class="logo-text">专升本<span>智能备考</span></h1>
         </div>
-      </div>
+      </header>
 
-      <div class="brand-foot">2027 年专升本统考备考平台</div>
-    </aside>
-
-    <section class="form-panel">
-      <div class="form-wrap">
-        <div class="logo m-logo">
-          <div class="logo-name">专升本<span>智能备考</span></div>
+      <!-- 悬浮毛玻璃主卡片 -->
+      <section class="glass-card">
+        <div class="card-inner-glow" aria-hidden="true"></div>
+        <div class="card-head">
+          <h2 class="card-title">{{ title }}</h2>
+          <p class="card-sub">{{ sub }}</p>
         </div>
 
-        <h2>{{ title }}</h2>
-        <p class="sub">{{ sub }}</p>
-
-        <div class="form-body">
+        <div class="card-body">
           <slot />
         </div>
 
-        <div class="auth-foot">
+        <footer class="card-foot">
           <slot name="foot" />
-        </div>
-      </div>
-    </section>
+        </footer>
+      </section>
+
+      <!-- 底部版权/标语信息 -->
+      <footer class="page-footer">
+        <span>2027 年专升本统考备考平台 · 智能练习 · 错题诊断 · 提分计划</span>
+      </footer>
+    </main>
   </div>
 </template>
 
 <style scoped>
-.auth-shell {
-  --bg: #ffffff;
-  --bg-brand: #f3f6fb;
-  --surface: #ffffff;
-  --ink: #111a2e;
-  --ink-2: #465168;
-  --ink-3: #5f697e;
-  --line: #cbd3e1;
-  --line-strong: #aeb9cc;
-  --line-soft: #e3e8f1;
-  --primary: #1f55d6;
-  --primary-hover: #1946b4;
-  --link: #1f55d6;
-  --primary-soft: #e9effd;
-  --primary-soft-ink: #1a44ae;
-  --ring: rgba(31, 85, 214, 0.18);
-  --warn: #b96a00;
-  --err: #d1342f;
-  --navy: #0b2159;
-  --mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+.auth-root {
+  --bg-deep: #0a0f1d;
+  --bg-deep-2: #0f172a;
+  --primary: #2563eb;
+  --primary-light: #3b82f6;
+  --primary-glow: rgba(59, 130, 246, 0.45);
+  --accent-cyan: #06b6d4;
+  --accent-purple: #8b5cf6;
+  --glass-surface: rgba(15, 23, 42, 0.72);
+  --glass-border: rgba(255, 255, 255, 0.12);
+  --glass-border-focus: rgba(96, 165, 250, 0.5);
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --line-soft: rgba(255, 255, 255, 0.08);
 
+  position: relative;
   min-height: 100vh;
-  display: grid;
-  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
-  background: var(--bg);
-  color: var(--ink);
-  font: 14px/1.5 var(--font);
-  -webkit-font-smoothing: antialiased;
-}
-
-/* ---------- 左侧深色品牌区 ---------- */
-.brand-panel {
-  display: flex;
-  flex-direction: column;
-  padding-block: clamp(24px, 4vh, 48px) clamp(20px, 3vh, 36px);
-  padding-left: max(clamp(32px, 5vw, 72px), env(safe-area-inset-left, 0px));
-  padding-right: max(clamp(32px, 5vw, 72px), env(safe-area-inset-right, 0px));
-  background-color: var(--navy);
-  background-image:
-    radial-gradient(ellipse 70% 50% at 15% 105%, rgba(59, 107, 232, 0.35), transparent 70%),
-    linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
-  background-size: auto, 48px 48px, 48px 48px;
-  color: #fff;
-}
-.logo { display: flex; align-items: center; }
-/* 品牌字标：高级版标题样式（思源宋体 600，字距 0.16em） */
-.logo-name {
-  font: 600 17px/1.2 var(--font-serif);
-  letter-spacing: 0.16em;
-}
-.logo-name span { font-weight: 400; opacity: 0.72; }
-
-.brand-main {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: safe center;
-  gap: clamp(20px, 4vh, 40px);
   width: 100%;
-  max-width: 520px;
-  min-width: 0;
-  padding-block: clamp(16px, 3vh, 40px);
-}
-/* 标语标题：高级版 h1 样式（思源宋体 500，字距 0.14em） */
-h1 {
-  margin: 0;
-  font: 500 clamp(32px, 2.6vw, 42px) / 1.65 var(--font-serif);
-  letter-spacing: 0.14em;
-  color: #fff;
-}
-h1 span { display: block; }
-.lede {
-  margin: 16px 0 0;
-  max-width: 28em;
-  font-size: 15px;
-  line-height: 1.7;
-  color: rgba(255, 255, 255, 0.76);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--bg-deep);
+  color: var(--text-primary);
+  font-family: var(--font, system-ui, -apple-system, sans-serif);
+  overflow-x: hidden;
+  padding: 32px 16px;
+  box-sizing: border-box;
 }
 
-.preview {
-  border-radius: 12px;
-  background: var(--surface);
-  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.28);
-  padding: 20px;
-  transition: transform 0.2s ease-out, box-shadow 0.3s ease;
+/* 弥散光斑与沉浸背景 */
+.glow-bg {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 0;
+}
+
+.orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.65;
   will-change: transform;
 }
-.pv-head {
+
+.orb-1 {
+  top: -10%;
+  left: 20%;
+  width: 520px;
+  height: 520px;
+  background: radial-gradient(circle, rgba(37, 99, 235, 0.55) 0%, rgba(30, 58, 138, 0.1) 70%);
+  animation: floatOrb1 18s ease-in-out infinite alternate;
+}
+
+.orb-2 {
+  bottom: -15%;
+  right: 15%;
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, rgba(139, 92, 246, 0.45) 0%, rgba(37, 99, 235, 0.08) 70%);
+  animation: floatOrb2 22s ease-in-out infinite alternate;
+}
+
+.orb-3 {
+  top: 40%;
+  left: -10%;
+  width: 440px;
+  height: 440px;
+  background: radial-gradient(circle, rgba(6, 182, 212, 0.35) 0%, transparent 70%);
+  animation: floatOrb3 20s ease-in-out infinite alternate;
+}
+
+@keyframes floatOrb1 {
+  0% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(60px, 40px) scale(1.08); }
+  100% { transform: translate(-40px, 70px) scale(0.95); }
+}
+
+@keyframes floatOrb2 {
+  0% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(-50px, -60px) scale(1.1); }
+  100% { transform: translate(40px, -30px) scale(0.92); }
+}
+
+@keyframes floatOrb3 {
+  0% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(50px, -40px) scale(1.12); }
+  100% { transform: translate(-30px, 50px) scale(0.96); }
+}
+
+/* 微质感科技网格 */
+.mesh-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+  background-size: 40px 40px;
+  mask-image: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.9) 20%, rgba(0, 0, 0, 0.2) 80%);
+  -webkit-mask-image: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.9) 20%, rgba(0, 0, 0, 0.2) 80%);
+}
+
+/* 核心容器 */
+.auth-container {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 440px;
+  margin: auto;
   display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 12px;
+  flex-direction: column;
+  align-items: center;
 }
-.pv-head > div:first-child { min-width: 0; }
-.pv-title { font-size: 15px; font-weight: 600; color: var(--ink); }
-.pv-sub { font-size: 12px; color: var(--ink-3); }
-.pv-count {
-  font-size: 13px;
-  color: var(--ink-2);
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
+
+/* 品牌头部 */
+.brand-header {
+  text-align: center;
+  margin-bottom: 24px;
 }
-.pv-count strong { font-size: 20px; font-weight: 600; color: var(--link); }
-.bar {
+
+.brand-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 14px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-radius: 9999px;
+  margin-bottom: 14px;
+}
+
+.badge-dot {
+  width: 6px;
   height: 6px;
-  margin-top: 12px;
-  border-radius: 999px;
-  background: var(--line-soft);
-  overflow: hidden;
-}
-.bar > i {
-  display: block;
-  height: 100%;
-  border-radius: 999px;
-  background: var(--primary);
+  background-color: var(--accent-cyan);
+  border-radius: 50%;
+  box-shadow: 0 0 10px var(--accent-cyan);
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
-.tasks {
-  margin: 12px 0 0;
-  padding: 0;
-  list-style: none;
-  display: grid;
-  gap: 2px;
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.85); }
 }
-.task {
-  display: grid;
-  grid-template-columns: 20px minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 12px;
-  padding: 9px 10px;
-  border-radius: 8px;
-}
-.task.doing { background: var(--primary-soft); }
-.task > svg { display: block; width: 20px; height: 20px; }
-.t-name { font-size: 14px; font-weight: 500; color: var(--ink); }
-.task.done .t-name { color: var(--ink-2); }
-.t-sub { font-size: 12px; color: var(--ink-3); }
-.task.doing .t-sub { color: var(--primary-soft-ink); }
-.t-meta {
+
+.badge-text {
   font-size: 12px;
-  color: var(--ink-3);
-  text-align: right;
-  white-space: nowrap;
-  font-variant-numeric: tabular-nums;
-}
-.task.doing .t-meta { color: var(--primary-soft-ink); font-weight: 500; }
-
-.weak {
-  margin-top: 14px;
-  padding-top: 16px;
-  border-top: 1px solid var(--line-soft);
-}
-.weak-label {
-  margin-bottom: 10px;
-  font-size: 12px;
-  color: var(--ink-3);
-  letter-spacing: 0.04em;
-}
-.weak-row {
-  display: grid;
-  grid-template-columns: 112px minmax(0, 1fr) 40px;
-  align-items: center;
-  gap: 12px;
-  padding-block: 5px;
-  font-size: 13px;
-  color: var(--ink);
-}
-.weak-row .bar { margin: 0; }
-.weak-row .num {
-  text-align: right;
-  color: var(--ink-2);
-  font-variant-numeric: tabular-nums;
-}
-.weak-row.low .bar > i { background: var(--warn); }
-.weak-row.low .num { color: var(--warn); font-weight: 500; }
-.caption { margin: 12px 0 0; font-size: 12px; color: rgba(255, 255, 255, 0.62); }
-.brand-foot { font-size: 13px; color: rgba(255, 255, 255, 0.62); }
-
-/* ---------- 右侧表单区 ---------- */
-.form-panel {
-  display: flex;
-  align-items: safe center;
-  justify-content: center;
-  padding-block: clamp(24px, 5vh, 48px);
-  padding-left: max(clamp(16px, 4vw, 48px), env(safe-area-inset-left, 0px));
-  padding-right: max(clamp(16px, 4vw, 48px), env(safe-area-inset-right, 0px));
-  background: var(--bg);
-}
-.form-wrap { width: 100%; max-width: 360px; min-width: 0; }
-.m-logo { display: none; margin-bottom: 40px; color: var(--ink); }
-/* 页面标题：高级版 h2 样式（思源宋体 600 28px，字距 0.06em） */
-h2 {
-  margin: 0;
-  font: 600 28px / 1.35 var(--font-serif);
+  font-weight: 500;
   letter-spacing: 0.06em;
-  color: var(--ink);
+  color: #cbd5e1;
 }
-.sub { margin: 8px 0 32px; color: var(--ink-2); }
-.auth-foot { margin-top: 24px; text-align: center; color: var(--ink-2); }
 
-.form-body :deep(.auth-field + .auth-field) { margin-top: 20px; }
-.form-body :deep(.auth-label) {
+.logo-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+
+.logo-icon {
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(135deg, rgba(37, 99, 235, 0.8), rgba(139, 92, 246, 0.8));
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  color: #fff;
+  box-shadow: 0 8px 16px -4px rgba(37, 99, 235, 0.5);
+}
+
+.logo-icon svg {
+  width: 20px;
+  height: 20px;
+}
+
+.logo-text {
+  font-family: var(--font-serif, serif);
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #ffffff;
+  margin: 0;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+}
+
+.logo-text span {
+  font-weight: 400;
+  background: linear-gradient(120deg, #93c5fd, #c4b5fd);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-left: 4px;
+}
+
+/* 核心毛玻璃卡片 */
+.glass-card {
+  position: relative;
+  width: 100%;
+  background: var(--glass-surface);
+  backdrop-filter: blur(24px) saturate(160%);
+  -webkit-backdrop-filter: blur(24px) saturate(160%);
+  border: 1px solid var(--glass-border);
+  border-radius: 20px;
+  box-shadow:
+    0 24px 50px -12px rgba(0, 0, 0, 0.65),
+    0 0 0 1px rgba(255, 255, 255, 0.08) inset,
+    0 1px 0 rgba(255, 255, 255, 0.2) inset;
+  padding: 32px 30px;
+  box-sizing: border-box;
+  overflow: hidden;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.glass-card:hover {
+  border-color: rgba(255, 255, 255, 0.18);
+  box-shadow:
+    0 30px 60px -12px rgba(0, 0, 0, 0.75),
+    0 0 0 1px rgba(255, 255, 255, 0.12) inset,
+    0 1px 0 rgba(255, 255, 255, 0.28) inset;
+}
+
+.card-inner-glow {
+  position: absolute;
+  top: 0;
+  left: 20%;
+  right: 20%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(147, 197, 253, 0.8), transparent);
+}
+
+.card-head {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.card-title {
+  font-family: var(--font-serif, serif);
+  font-size: 22px;
+  font-weight: 600;
+  color: #ffffff;
+  margin: 0;
+  letter-spacing: 0.03em;
+}
+
+.card-sub {
+  margin-top: 6px;
+  font-size: 13.5px;
+  color: var(--text-secondary);
+}
+
+/* 表单主体插槽统一样式支持 */
+.card-body :deep(.auth-field + .auth-field) {
+  margin-top: 18px;
+}
+
+.card-body :deep(.auth-label) {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  margin-bottom: 8px;
+  margin-bottom: 7px;
+  font-size: 13.5px;
   font-weight: 500;
-  color: var(--ink);
+  color: #e2e8f0;
 }
-.form-body :deep(.auth-hint) { font-size: 12px; font-weight: 400; color: var(--ink-3); }
-.form-body :deep(.auth-control) { position: relative; }
-.form-body :deep(.auth-control input) {
+
+.card-body :deep(.auth-hint) {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.card-body :deep(.auth-control) {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.card-body :deep(.auth-control input) {
   width: 100%;
-  height: 40px;
-  padding: 0 12px 0 38px;
-  border: 1px solid var(--line);
-  border-radius: 6px;
-  background: var(--surface);
-  color: var(--ink);
-  font: inherit;
-  transition: border-color 0.15s, box-shadow 0.15s;
-}
-.form-body :deep(.auth-control.plain input) { padding-left: 12px; }
-.form-body :deep(.auth-control.has-toggle input) { padding-right: 44px; }
-.form-body :deep(.auth-control input::placeholder) { color: var(--ink-3); }
-.form-body :deep(.auth-control input:hover) { border-color: var(--line-strong); }
-.form-body :deep(.auth-control input:focus) {
+  height: 44px;
+  padding: 0 14px 0 40px;
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  color: #f8fafc;
+  font-size: 14px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   outline: none;
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px var(--ring);
 }
-.form-body :deep(.auth-control input[aria-invalid="true"]) { border-color: var(--err); }
-.form-body :deep(.auth-control input[aria-invalid="true"]:focus) {
-  box-shadow: 0 0 0 3px rgba(209, 52, 47, 0.18);
+
+.card-body :deep(.auth-control.plain input) {
+  padding-left: 14px;
 }
-.form-body :deep(.auth-ico) {
+
+.card-body :deep(.auth-control.has-toggle input) {
+  padding-right: 42px;
+}
+
+.card-body :deep(.auth-control input::placeholder) {
+  color: #64748b;
+}
+
+.card-body :deep(.auth-control input:hover) {
+  border-color: rgba(255, 255, 255, 0.22);
+  background: rgba(15, 23, 42, 0.75);
+}
+
+.card-body :deep(.auth-control input:focus) {
+  border-color: #60a5fa;
+  background: rgba(15, 23, 42, 0.85);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25), 0 0 16px rgba(59, 130, 246, 0.2);
+}
+
+.card-body :deep(.auth-control input[aria-invalid="true"]) {
+  border-color: #f87171;
+}
+
+.card-body :deep(.auth-control input[aria-invalid="true"]:focus) {
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.25);
+}
+
+.card-body :deep(.auth-ico) {
   position: absolute;
-  left: 12px;
-  top: 50%;
-  width: 16px;
-  height: 16px;
-  margin-top: -8px;
-  color: var(--ink-3);
+  left: 13px;
+  width: 17px;
+  height: 17px;
+  color: #94a3b8;
   pointer-events: none;
+  transition: color 0.2s;
 }
-.form-body :deep(.auth-toggle) {
+
+.card-body :deep(.auth-control:focus-within .auth-ico) {
+  color: #60a5fa;
+}
+
+.card-body :deep(.auth-toggle) {
   position: absolute;
-  right: 4px;
-  top: 4px;
+  right: 6px;
   width: 32px;
   height: 32px;
   display: grid;
   place-items: center;
   border: 0;
-  border-radius: 4px;
+  border-radius: 6px;
   background: transparent;
-  color: var(--ink-3);
+  color: #94a3b8;
   cursor: pointer;
+  transition: all 0.15s;
 }
-.form-body :deep(.auth-toggle:hover) { color: var(--ink); background: var(--bg-brand); }
-.form-body :deep(.auth-toggle svg) { width: 16px; height: 16px; display: block; }
-.form-body :deep(.auth-err) { margin: 6px 0 0; font-size: 12px; color: var(--err); }
-.form-body :deep(.auth-submit) {
+
+.card-body :deep(.auth-toggle:hover) {
+  color: #f8fafc;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.card-body :deep(.auth-toggle svg) {
+  width: 16px;
+  height: 16px;
+}
+
+.card-body :deep(.auth-err) {
+  margin: 6px 0 0 2px;
+  font-size: 12px;
+  color: #f87171;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.card-body :deep(.auth-submit) {
   width: 100%;
-  height: 40px;
+  height: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  margin-top: 24px;
+  margin-top: 22px;
   border: 0;
-  border-radius: 6px;
-  background: var(--primary);
-  color: #fff;
-  font: inherit;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #2563eb, #1d4fd7);
+  color: #ffffff;
   font-size: 15px;
-  font-weight: 500;
+  font-weight: 600;
+  letter-spacing: 0.04em;
   cursor: pointer;
-  transition: background 0.15s;
-}
-.form-body :deep(.auth-submit:hover) { background: var(--primary-hover); }
-.form-body :deep(.auth-submit[disabled]) { opacity: 0.75; cursor: default; }
-.form-body :deep(.auth-link) { font-weight: 500; color: var(--link); text-decoration: none; }
-.form-body :deep(.auth-link:hover) { text-decoration: underline; }
-.auth-foot :deep(.auth-link) { font-weight: 500; color: var(--link); text-decoration: none; }
-.auth-foot :deep(.auth-link:hover) { text-decoration: underline; }
-
-/* 矮屏（笔记本常见视口）：收起示意卡片中的薄弱知识点，压缩标题行高，避免左栏溢出出现滚动条 */
-@media (min-width: 961px) and (max-height: 860px) {
-  .weak { display: none; }
-  h1 { line-height: 1.4; }
-  .brand-main { gap: 20px; }
+  box-shadow: 0 6px 20px -2px rgba(37, 99, 235, 0.5), 0 1px 0 rgba(255, 255, 255, 0.25) inset;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* 窄屏：收起左侧品牌区 */
-@media (max-width: 960px) {
-  .auth-shell { grid-template-columns: minmax(0, 1fr); }
-  .brand-panel { display: none; }
-  .m-logo { display: flex; }
-  .form-panel { align-items: flex-start; }
+.card-body :deep(.auth-submit:hover:not(:disabled)) {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  box-shadow: 0 8px 24px -2px rgba(59, 130, 246, 0.6), 0 1px 0 rgba(255, 255, 255, 0.3) inset;
+  transform: translateY(-1px);
+}
+
+.card-body :deep(.auth-submit:active:not(:disabled)) {
+  transform: translateY(0);
+}
+
+.card-body :deep(.auth-submit[disabled]) {
+  opacity: 0.65;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.card-foot {
+  margin-top: 22px;
+  text-align: center;
+  font-size: 13.5px;
+  color: var(--text-secondary);
+}
+
+.card-body :deep(.auth-link),
+.card-foot :deep(.auth-link) {
+  color: #60a5fa;
+  font-weight: 500;
+  text-decoration: none;
+  transition: color 0.15s;
+}
+
+.card-body :deep(.auth-link:hover),
+.card-foot :deep(.auth-link:hover) {
+  color: #93c5fd;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* 底部标语 */
+.page-footer {
+  margin-top: 24px;
+  font-size: 12px;
+  color: var(--text-muted);
+  text-align: center;
+  letter-spacing: 0.02em;
+}
+
+@media (max-width: 480px) {
+  .auth-root {
+    padding: 20px 12px;
+  }
+  .glass-card {
+    padding: 26px 20px;
+    border-radius: 16px;
+  }
+  .card-title {
+    font-size: 20px;
+  }
+  .logo-text {
+    font-size: 22px;
+  }
+  .page-footer {
+    font-size: 11px;
+  }
 }
 </style>
